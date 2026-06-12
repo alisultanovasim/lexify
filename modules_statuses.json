@@ -1,0 +1,10 @@
+{
+    "Auth": true,
+    "Deck": true,
+    "Vocabulary": true,
+    "Study": true,
+    "Image": true,
+    "Progress": true,
+    "Language": true,
+    "Import": true
+}

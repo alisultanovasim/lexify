@@ -1,0 +1,11 @@
+{
+    "name": "Deck",
+    "alias": "deck",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Deck\\Providers\\DeckServiceProvider"
+    ],
+    "files": []
+}

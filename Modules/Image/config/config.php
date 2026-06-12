@@ -1,0 +1,4 @@
+<?php
+return [
+    'pixabay_api_key' => env('PIXABAY_API_KEY', ''),
+];

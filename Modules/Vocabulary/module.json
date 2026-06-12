@@ -1,0 +1,11 @@
+{
+    "name": "Vocabulary",
+    "alias": "vocabulary",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Vocabulary\\Providers\\VocabularyServiceProvider"
+    ],
+    "files": []
+}
