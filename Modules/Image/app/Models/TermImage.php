@@ -18,8 +18,13 @@ class TermImage extends Model
 
     public function getUrlAttribute(): ?string
     {
+        // Existing images: path set → serve from local storage
         if ($this->path) {
             return Storage::disk('public')->url($this->path);
+        }
+        // New images: path null → serve directly from CDN URL
+        if ($this->original_url) {
+            return $this->original_url;
         }
         return null;
     }

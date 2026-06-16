@@ -95,7 +95,6 @@ const deleteDeck = () => {
 const studyModes = [
   { mode: 'flashcard', label: 'Kartlar',  emoji: '🃏' },
   { mode: 'learn',     label: 'Öyrən',    emoji: '🧠' },
-  { mode: 'write',     label: 'Yaz',      emoji: '✏️' },
   { mode: 'match',     label: 'Uyğunlaş', emoji: '🔗' },
   { mode: 'test',      label: 'Test',     emoji: '📝' },
 ];
@@ -130,7 +129,7 @@ const studyModes = [
       </div>
 
       <!-- Study Modes -->
-      <div v-if="totalCount > 0" class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-8">
+      <div v-if="totalCount > 0" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
         <button
           v-for="sm in studyModes"
           :key="sm.mode"

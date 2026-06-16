@@ -9,6 +9,7 @@ const props = defineProps({
   dueToday: Array,
   recentSessions: Array,
   deckProgress: Array,
+  incompleteSessions: Array,
 });
 
 const modeLabels = { flashcard:'Kartlar', learn:'Öyrən', write:'Yaz', match:'Uyğunlaş', test:'Test' };
@@ -106,6 +107,43 @@ const modeColors = { flashcard:'bg-indigo-100 text-indigo-700', learn:'bg-purple
 
       </div>
 
+      <!-- Incomplete sessions -->
+      <div v-if="incompleteSessions && incompleteSessions.length > 0" class="mt-6 bg-white rounded-2xl border border-amber-200 p-6">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-xl">⏸️</span>
+          <h2 class="font-semibold text-gray-900">Yarımçıq Sessiyalar</h2>
+          <span class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">{{ incompleteSessions.length }}</span>
+        </div>
+
+        <div class="space-y-3">
+          <div v-for="s in incompleteSessions" :key="s.id"
+            class="flex items-center justify-between p-4 bg-amber-50 border border-amber-100 rounded-xl hover:bg-amber-100 transition">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-medium text-gray-900 truncate">{{ s.deck_title }}</span>
+                <span class="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0"
+                  :class="modeColors[s.mode] || 'bg-gray-100 text-gray-600'">
+                  {{ modeLabels[s.mode] || s.mode }}
+                </span>
+              </div>
+              <!-- Mini progress bar -->
+              <div class="flex items-center gap-2">
+                <div class="flex-1 h-1.5 bg-amber-200 rounded-full overflow-hidden">
+                  <div class="h-full bg-amber-500 rounded-full transition-all" :style="{ width: s.percent + '%' }"></div>
+                </div>
+                <span class="text-xs text-gray-500 flex-shrink-0">{{ s.answered }}/{{ s.total }} ({{ s.percent }}%)</span>
+              </div>
+              <p class="text-xs text-gray-400 mt-1">{{ s.started_at }} başlanıb</p>
+            </div>
+            <button
+              @click="router.visit(`/decks/${s.deck_id}/study/${s.mode}?session=${s.id}`)"
+              class="ml-4 px-4 py-2 bg-amber-500 text-white text-sm font-medium rounded-xl hover:bg-amber-600 transition flex-shrink-0">
+              Davam et →
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Recent sessions -->
       <div class="mt-6 bg-white rounded-2xl border border-gray-200 p-6">
         <h2 class="font-semibold text-gray-900 mb-4">Son Sessiyalar</h2>
@@ -126,7 +164,9 @@ const modeColors = { flashcard:'bg-indigo-100 text-indigo-700', learn:'bg-purple
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-50">
-              <tr v-for="s in recentSessions" :key="s.id" class="hover:bg-gray-50">
+              <tr v-for="s in recentSessions" :key="s.id"
+                class="hover:bg-gray-50"
+                :class="!s.completed ? 'opacity-80' : ''">
                 <td class="py-3 font-medium text-gray-900">{{ s.deck_title }}</td>
                 <td class="py-3">
                   <span class="px-2 py-0.5 rounded-full text-xs font-medium" :class="modeColors[s.mode] || 'bg-gray-100 text-gray-600'">
@@ -134,10 +174,18 @@ const modeColors = { flashcard:'bg-indigo-100 text-indigo-700', learn:'bg-purple
                   </span>
                 </td>
                 <td class="py-3">
-                  <span class="font-bold" :class="s.score >= 70 ? 'text-green-600' : s.score >= 40 ? 'text-yellow-600' : 'text-red-500'">
-                    {{ s.score }}%
-                  </span>
-                  <span class="text-gray-400 text-xs ml-1">({{ s.correct }}/{{ s.total }})</span>
+                  <template v-if="s.completed">
+                    <span class="font-bold" :class="s.score >= 70 ? 'text-green-600' : s.score >= 40 ? 'text-yellow-600' : 'text-red-500'">
+                      {{ s.score }}%
+                    </span>
+                    <span class="text-gray-400 text-xs ml-1">({{ s.correct }}/{{ s.total }})</span>
+                  </template>
+                  <template v-else>
+                    <button @click="router.visit(`/decks/${s.deck_id}/study/${s.mode}?session=${s.id}`)"
+                      class="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition font-medium">
+                      ▶ Davam et ({{ s.answered }}/{{ s.total }})
+                    </button>
+                  </template>
                 </td>
                 <td class="py-3 text-gray-400">{{ s.completed_at }}</td>
               </tr>

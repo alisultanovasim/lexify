@@ -18,12 +18,11 @@ const mobileOpen = ref(false);
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <!-- Logo -->
-          <button @click="router.visit('/dashboard')" class="flex items-center gap-2">
-            <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <span class="text-white font-bold text-sm">L</span>
-            </div>
-            <span class="font-bold text-gray-900 text-lg">LinguaCards</span>
-          </button>
+            <button @click="router.visit('/dashboard')" class="flex items-center gap-2">
+                <img src="/logo.jpg" alt="LinguaCards Logo" class="w-8 h-8 object-contain rounded-lg" />
+
+                <span class="font-bold text-gray-900 text-lg">Lexify</span>
+            </button>
 
           <!-- Nav links -->
           <div class="hidden md:flex items-center gap-6">
