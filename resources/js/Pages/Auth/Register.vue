@@ -1,6 +1,7 @@
 <script setup>
 import GuestLayout from '@/Layouts/GuestLayout.vue';
-import { ref, computed } from 'vue';
+import { router } from '@inertiajs/vue3';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 
 const name                  = ref('');
@@ -10,31 +11,58 @@ const password_confirmation = ref('');
 const processing            = ref(false);
 const errors                = ref({});
 const generalError          = ref('');
+const googleLoading         = ref(false);
 
 const hasErrors = computed(() => Object.keys(errors.value).length > 0 || generalError.value);
 
-// Laravel error messages → Azerbaijani
 const translateError = (field, msg) => {
   if (!msg) return msg;
   const map = {
-    'The name field is required.'                          : 'Ad tələb olunur.',
-    'The email field is required.'                         : 'E-poçt tələb olunur.',
-    'The email has already been taken.'                    : 'Bu e-poçt artıq qeydiyyatdan keçib.',
-    'The email must be a valid email address.'             : 'E-poçt düzgün formatda deyil.',
-    'The password field is required.'                      : 'Şifrə tələb olunur.',
-    'The password must be at least 6 characters.'          : 'Şifrə ən az 6 simvol olmalıdır.',
-    'The password must be at least 8 characters.'          : 'Şifrə ən az 8 simvol olmalıdır.',
-    'The password confirmation does not match.'            : 'Şifrələr uyğun gəlmir.',
-    'The password field confirmation does not match.'      : 'Şifrələr uyğun gəlmir.',
-    'These credentials do not match our records.'          : 'E-poçt və ya şifrə səhvdir.',
+    'The name field is required.'                     : 'Ad tələb olunur.',
+    'The email field is required.'                    : 'E-poçt tələb olunur.',
+    'The email has already been taken.'               : 'Bu e-poçt artıq qeydiyyatdan keçib.',
+    'The email must be a valid email address.'        : 'E-poçt düzgün formatda deyil.',
+    'The password field is required.'                 : 'Şifrə tələb olunur.',
+    'The password must be at least 6 characters.'     : 'Şifrə ən az 6 simvol olmalıdır.',
+    'The password must be at least 8 characters.'     : 'Şifrə ən az 8 simvol olmalıdır.',
+    'The password confirmation does not match.'       : 'Şifrələr uyğun gəlmir.',
+    'The password field confirmation does not match.' : 'Şifrələr uyğun gəlmir.',
   };
   return map[msg] || msg;
 };
 
+onMounted(() => {
+  if (window.google) {
+    initGoogle();
+  } else {
+    const script = document.querySelector('script[src*="accounts.google.com/gsi/client"]');
+    if (script) script.addEventListener('load', initGoogle);
+  }
+});
+
+function initGoogle() {
+  window.google.accounts.id.initialize({
+    client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+    callback:  handleGoogleRegister,
+  });
+
+  window.google.accounts.id.renderButton(
+    document.getElementById('google-register-btn'),
+    { theme: 'outline', size: 'large', width: '100%', locale: 'az' },
+  );
+}
+
+function handleGoogleRegister(response) {
+  googleLoading.value = true;
+  router.post('/auth/google', { token: response.credential }, {
+    onFinish: () => { googleLoading.value = false; },
+  });
+}
+
 const submit = async () => {
-  errors.value = {};
+  errors.value       = {};
   generalError.value = '';
-  processing.value = true;
+  processing.value   = true;
   try {
     await axios.post('/register', {
       name:                  name.value,
@@ -50,16 +78,16 @@ const submit = async () => {
         Object.entries(serverErrors).map(([k, v]) => {
           const msg = Array.isArray(v) ? v[0] : v;
           return [k, translateError(k, msg)];
-        })
+        }),
       );
     } else if (e.response?.status === 419) {
       generalError.value = 'Sessiya vaxtı bitdi. Səhifəni yeniləyin.';
     } else {
       generalError.value = 'Xəta baş verdi. Yenidən cəhd edin.';
     }
-    password.value = '';
+    password.value              = '';
     password_confirmation.value = '';
-    processing.value = false;
+    processing.value            = false;
   }
 };
 </script>
@@ -154,6 +182,22 @@ const submit = async () => {
         {{ processing ? 'Yaradılır...' : 'Qeydiyyat' }}
       </button>
     </form>
+
+    <!-- Divider -->
+    <div class="relative my-5">
+      <div class="absolute inset-0 flex items-center">
+        <div class="w-full border-t border-gray-200"></div>
+      </div>
+      <div class="relative flex justify-center text-sm">
+        <span class="px-3 bg-white text-gray-400">və ya</span>
+      </div>
+    </div>
+
+    <!-- Google Register -->
+    <div v-if="googleLoading" class="w-full py-2.5 text-center text-sm text-gray-500">
+      Google ilə qeydiyyat...
+    </div>
+    <div v-else id="google-register-btn" class="w-full"></div>
 
     <p class="text-center text-sm text-gray-500 mt-6">
       Hesabınız var?

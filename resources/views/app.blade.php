@@ -16,6 +16,7 @@
     @routes
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @inertiaHead
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="h-full font-sans antialiased bg-gray-50">
     @inertia

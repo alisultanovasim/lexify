@@ -1,7 +1,7 @@
 <script setup>
 import GuestLayout from '@/Layouts/GuestLayout.vue';
-import { useForm, usePage } from '@inertiajs/vue3';
-import { onMounted, computed } from 'vue';
+import { useForm, usePage, router } from '@inertiajs/vue3';
+import { onMounted, computed, ref } from 'vue';
 
 const page = usePage();
 
@@ -11,13 +11,44 @@ const form = useForm({
   remember: false,
 });
 
+const googleLoading = ref(false);
+
 onMounted(() => {
   const savedEmail = localStorage.getItem('login_remember_email');
   if (savedEmail) {
     form.email    = savedEmail;
     form.remember = true;
   }
+
+  if (window.google) {
+    initGoogle();
+  } else {
+    // GSI script hələ yüklənməyibsə - yüklənəndə init et
+    const script = document.querySelector('script[src*="accounts.google.com/gsi/client"]');
+    if (script) {
+      script.addEventListener('load', initGoogle);
+    }
+  }
 });
+
+function initGoogle() {
+  window.google.accounts.id.initialize({
+    client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+    callback: handleGoogleLogin,
+  });
+
+  window.google.accounts.id.renderButton(
+    document.getElementById('google-signin-btn'),
+    { theme: 'outline', size: 'large', width: '100%', locale: 'az' }
+  );
+}
+
+function handleGoogleLogin(response) {
+  googleLoading.value = true;
+  router.post('/auth/google', { token: response.credential }, {
+    onFinish: () => { googleLoading.value = false; },
+  });
+}
 
 const submit = () => {
   if (form.remember) {
@@ -99,6 +130,22 @@ const passwordError = computed(() => form.errors.password || page.props.errors?.
         {{ form.processing ? 'Daxil olunur...' : 'Daxil ol' }}
       </button>
     </form>
+
+    <!-- Divider -->
+    <div class="relative my-5">
+      <div class="absolute inset-0 flex items-center">
+        <div class="w-full border-t border-gray-200"></div>
+      </div>
+      <div class="relative flex justify-center text-sm">
+        <span class="px-3 bg-white text-gray-400">və ya</span>
+      </div>
+    </div>
+
+    <!-- Google Login -->
+    <div v-if="googleLoading" class="w-full py-2.5 text-center text-sm text-gray-500">
+      Google ilə daxil olunur...
+    </div>
+    <div v-else id="google-signin-btn" class="w-full"></div>
 
     <p class="text-center text-sm text-gray-500 mt-6">
       Hesabınız yoxdur?

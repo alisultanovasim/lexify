@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,6 +24,13 @@ class LoginController extends Controller
             'email'    => 'required|email',
             'password' => 'required',
         ]);
+
+        $user = User::where('email', $credentials['email'])->first();
+        if ($user && is_null($user->password)) {
+            return back()->withErrors([
+                'email' => 'Bu hesab Google ilə qeydiyyatdan keçib. Zəhmət olmasa Google ilə daxil olun.',
+            ])->onlyInput('email');
+        }
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
