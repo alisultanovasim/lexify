@@ -1,0 +1,11 @@
+{
+    "name": "Stories",
+    "alias": "stories",
+    "description": "German story reader with interactive word lookup",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Stories\\Providers\\StoriesServiceProvider"
+    ],
+    "files": []
+}

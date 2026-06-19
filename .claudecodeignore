@@ -1,0 +1,18 @@
+# Böyük asılılıqlar və vendor qovluqları
+node_modules/
+vendor/
+
+# Müvəqqəti və keş faylları
+storage/
+bootstrap/cache/
+.phpunit.cache/
+
+# Git və mühit faylları
+.git/
+.env
+.env.example
+
+# Əgər o an işləmədiyiniz modullar varsa, onları da müvəqqəti bura ata bilərsiniz
+# Məsələn, ancaq Deck modulu ilə işləyirsinizsə:
+# Modules/Auth/
+# Modules/Study/

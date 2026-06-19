@@ -2,14 +2,16 @@
 
 > **İstifadə qaydası**: Hər yeni chat-da ilk mesajınızda yazın:
 > `"PROJECT_CONTEXT.md faylını oxu, sonra tapşırığı ver"`
-
+### 🚨 Modul Sərhədləri və Token Qənaəti Qaydası:
+- Sənə konkret bir modul (məsələn: Modules/Deck) tapşırıldıqda, digər modulların (Auth, Vocabulary və s.) kodlarını oxumağa və ya tələb etməyə ehtiyac yoxdur.
+- Söhbət zamanı yalnız sənə təqdim olunan və ya açıq şəkildə istənilən fayllar üzərində fokuslan. Layihənin digər hissələrində dəyişiklik təklif etmə.
 ---
 
 ## 1. Layihə Haqqında
 
 **Ad**: LinguaCards — Quizlet alternativi (şəxsi istifadə üçün)
 **Məqsəd**: Dil öyrənmə — əsasən Alman dili (DE→AZ)
-**URL**: `http://127.0.0.1:7000` (`php artisan serve --port=7000`)
+**URL**: `http://127.0.0.1:5000` (`php artisan serve --port=5000`)
 **Qovluq**: `C:\laragon\www\quizlanguage`
 
 ---

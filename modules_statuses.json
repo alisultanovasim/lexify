@@ -6,5 +6,6 @@
     "Image": true,
     "Progress": true,
     "Language": true,
-    "Import": true
+    "Import": true,
+    "Stories": true
 }

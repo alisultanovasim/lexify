@@ -35,6 +35,9 @@ const mobileOpen = ref(false);
             <button @click="router.visit('/progress')" class="text-gray-600 hover:text-indigo-600 font-medium transition">
               İrəliləyiş
             </button>
+            <button @click="router.visit('/stories')" class="text-gray-600 hover:text-indigo-600 font-medium transition">
+              Hekayələr
+            </button>
           </div>
 
           <!-- User menu -->

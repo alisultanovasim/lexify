@@ -173,6 +173,29 @@ class GeminiEnrichmentService
         return ['status' => 'ok', 'data' => $data];
     }
 
+    // ── Lightweight single-word translation (for Stories module) ────────────
+    public function translate(string $word, string $sourceLang = 'de', string $targetLang = 'az'): ?array
+    {
+        $langMap = ['de' => 'German', 'en' => 'English', 'ru' => 'Russian', 'az' => 'Azerbaijani', 'tr' => 'Turkish'];
+        $src     = $langMap[$sourceLang] ?? $sourceLang;
+        $tgt     = $langMap[$targetLang] ?? $targetLang;
+
+        $prompt = "Translate the {$src} word \"{$word}\" to {$tgt}.\nReturn JSON only (no markdown):\n{\"term\":\"word with article if German noun (e.g. das Haus)\",\"definition\":\"translation in {$tgt}\",\"gender\":\"der|die|das or null\",\"part_of_speech\":\"noun|verb|adjective|adverb|other\"}";
+
+        foreach ($this->providers as $provider) {
+            if (empty($provider['key'])) continue;
+
+            $result = $provider['type'] === 'gemini'
+                ? $this->callGemini($provider, $prompt)
+                : $this->callOpenAICompatible($provider, $prompt);
+
+            if ($result['status'] === 'ok') return $result['data'];
+            if (in_array($result['status'], ['quota', 'not_found', 'expired', 'no_key', 'error'])) continue;
+        }
+
+        return null;
+    }
+
     // ── Prompt builder ───────────────────────────────────────────────────────
     private function buildPrompt(string $term, string $definition, ?string $sourceLang, ?string $targetLang): string
     {

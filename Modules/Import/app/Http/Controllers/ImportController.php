@@ -32,15 +32,31 @@ class ImportController extends Controller
 
         $position = $deck->terms()->max('position') ?? 0;
         $created  = [];
+        $skipped  = [];
+
+        // Pre-load existing normalized_term values from indexed column — O(n) single query
+        $existingNormalized = Term::where('deck_id', $deck->id)
+            ->pluck('normalized_term')
+            ->flip()  // use as hash-set for O(1) PHP lookup
+            ->toArray();
 
         foreach ($request->rows as $row) {
+            $termText   = trim($row['term']);
+            $normalized = \Modules\Vocabulary\Models\Term::normalize($termText);
+
+            if (isset($existingNormalized[$normalized])) {
+                $skipped[] = $termText;
+                continue;
+            }
+
             $term = $deck->terms()->create([
-                'term'       => trim($row['term']),
+                'term'       => $termText,
                 'definition' => trim($row['definition']),
                 'notes'      => trim($row['notes'] ?? ''),
                 'position'   => ++$position,
             ]);
-            $created[] = ['id' => $term->id, 'term' => $term->term];
+            $created[]  = ['id' => $term->id, 'term' => $term->term];
+            $existingNormalized[$normalized] = true; // block intra-batch duplicates
         }
 
         // JSON: frontend enriches each term step-by-step and shows a progress bar
@@ -65,7 +81,11 @@ class ImportController extends Controller
             \Illuminate\Support\Facades\Log::warning('Import enrichment failed', ['error' => $e->getMessage()]);
         }
 
-        return redirect()->route('decks.show', $deck)
-            ->with('success', count($created) . ' söz import edildi + AI zənginləşdirdi!');
+        $msg = count($created) . ' söz import edildi + AI zənginləşdirdi!';
+        if (!empty($skipped)) {
+            $msg .= ' (' . count($skipped) . ' təkrar söz ötürüldü: ' . implode(', ', array_slice($skipped, 0, 5)) . (count($skipped) > 5 ? '...' : '') . ')';
+        }
+
+        return redirect()->route('decks.show', $deck)->with('success', $msg);
     }
 }

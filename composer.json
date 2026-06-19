@@ -43,7 +43,9 @@
             "Modules\\Language\\": "Modules/Language/app/",
             "Modules\\Language\\Database\\": "Modules/Language/database/",
             "Modules\\Import\\": "Modules/Import/app/",
-            "Modules\\Import\\Database\\": "Modules/Import/database/"
+            "Modules\\Import\\Database\\": "Modules/Import/database/",
+            "Modules\\Stories\\": "Modules/Stories/app/",
+            "Modules\\Stories\\Database\\": "Modules/Stories/database/"
         }
     },
     "autoload-dev": {

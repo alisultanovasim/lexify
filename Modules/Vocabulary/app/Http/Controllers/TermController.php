@@ -14,6 +14,20 @@ use Modules\Vocabulary\Services\GeminiEnrichmentService;
 
 class TermController extends Controller
 {
+    /**
+     * Check if a normalized term already exists in the deck.
+     * Uses the indexed `normalized_term` column — O(1), no full scan.
+     */
+    public static function existsInDeck(int $deckId, string $termText, ?int $excludeId = null): bool
+    {
+        $normalized = Term::normalize($termText);
+
+        return Term::where('deck_id', $deckId)
+            ->where('normalized_term', $normalized)
+            ->when($excludeId, fn ($q) => $q->where('id', '!=', $excludeId))
+            ->exists();   // returns bool, loads zero rows
+    }
+
     public function create(Deck $deck): Response
     {
         $this->authorize('update', $deck);
@@ -40,6 +54,13 @@ class TermController extends Controller
             'examples.*.sentence'    => 'required|string|max:500',
             'examples.*.translation' => 'nullable|string|max:500',
         ]);
+
+        // Duplicate check (article-insensitive)
+        if (self::existsInDeck($deck->id, $data['term'])) {
+            return back()->withErrors([
+                'term' => '"' . $data['term'] . '" artıq bu dəstdə mövcuddur.',
+            ])->withInput();
+        }
 
         $position = $deck->terms()->max('position') + 1;
         $term = $deck->terms()->create(array_merge($data, ['position' => $position]));
