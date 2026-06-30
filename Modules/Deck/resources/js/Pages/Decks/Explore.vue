@@ -40,7 +40,7 @@ const cloneDeck = (deckId) => {
           <h1 class="text-2xl font-bold text-gray-900">Kəşfet</h1>
           <p class="text-gray-500 text-sm mt-1">İctimai söz dəstlərini tapmaq</p>
         </div>
-        <button @click="router.visit('/decks')" class="text-sm text-gray-500 hover:text-indigo-600 transition">← Dəstlərim</button>
+        <button @click="router.visit('/decks')" class="text-sm text-gray-500 hover:text-cyan-600 transition">← Dəstlərim</button>
       </div>
 
       <!-- Filters -->
@@ -50,13 +50,13 @@ const cloneDeck = (deckId) => {
             v-model="search"
             type="text"
             placeholder="Dəst axtar..."
-            class="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+            class="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-cyan-500 outline-none"
           />
           <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
         </div>
         <select
           v-model="lang"
-          class="px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+          class="px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-cyan-500 outline-none"
         >
           <option value="">Bütün dillər</option>
           <option v-for="l in languages" :key="l.code" :value="l.code">
@@ -77,7 +77,7 @@ const cloneDeck = (deckId) => {
         <div
           v-for="deck in decks.data"
           :key="deck.id"
-          class="bg-white rounded-2xl border border-gray-200 hover:border-indigo-300 hover:shadow-md transition p-5"
+          class="bg-white rounded-2xl border border-gray-200 hover:border-cyan-300 hover:shadow-md transition p-5"
         >
           <div class="flex items-start justify-between mb-4">
             <div
@@ -104,11 +104,11 @@ const cloneDeck = (deckId) => {
             <div class="flex gap-2">
               <button
                 @click="router.visit(`/decks/${deck.id}`)"
-                class="px-3 py-1.5 text-xs font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                class="px-3 py-1.5 text-xs font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
               >Bax</button>
               <button
                 @click="cloneDeck(deck.id)"
-                class="px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                class="px-3 py-1.5 text-xs font-medium bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition"
               >Kopyala</button>
             </div>
           </div>
@@ -123,7 +123,7 @@ const cloneDeck = (deckId) => {
           @click="link.url && router.visit(link.url)"
           :class="[
             'px-3 py-1.5 text-sm rounded-lg transition',
-            link.active ? 'bg-indigo-600 text-white' : 'border border-gray-300 text-gray-600 hover:bg-gray-50',
+            link.active ? 'bg-cyan-600 text-white' : 'border border-gray-300 text-gray-600 hover:bg-gray-50',
             !link.url ? 'opacity-50 cursor-default pointer-events-none' : ''
           ]"
           v-html="link.label"

@@ -15,6 +15,7 @@ class DeckController extends Controller
     public function index(): Response
     {
         $decks = auth()->user()->decks()
+            ->orderBy('title', 'asc')
             ->with(['sourceLanguage', 'targetLanguage'])
             ->withCount('terms')
             ->latest()
@@ -117,7 +118,16 @@ class DeckController extends Controller
         $deck->load(['sourceLanguage', 'targetLanguage']);
         $deck->loadCount('terms');
 
-        return Inertia::render('Deck::Decks/Show', ['deck' => $deck]);
+        $stories = \Modules\Stories\Models\Story::where('deck_id', $deck->id)
+            ->where('user_id', auth()->id())
+            ->select(['id', 'title', 'level', 'created_at'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        return Inertia::render('Deck::Decks/Show', [
+            'deck'    => $deck,
+            'stories' => $stories,
+        ]);
     }
 
     public function terms(Request $request, Deck $deck): JsonResponse

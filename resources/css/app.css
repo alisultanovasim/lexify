@@ -7,15 +7,142 @@
 @theme {
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
 
-    --color-primary-50: #eef2ff;
-    --color-primary-100: #e0e7ff;
-    --color-primary-200: #c7d2fe;
-    --color-primary-300: #a5b4fc;
-    --color-primary-400: #818cf8;
-    --color-primary-500: #6366f1;
-    --color-primary-600: #4f46e5;
-    --color-primary-700: #4338ca;
-    --color-primary-800: #3730a3;
-    --color-primary-900: #312e81;
-    --color-primary-950: #1e1b4b;
+    --color-primary-50:  #ecfeff;
+    --color-primary-100: #cffafe;
+    --color-primary-200: #a5f3fc;
+    --color-primary-300: #67e8f9;
+    --color-primary-400: #22d3ee;
+    --color-primary-500: #06b6d4;
+    --color-primary-600: #0891b2;
+    --color-primary-700: #0e7490;
+    --color-primary-800: #155e75;
+    --color-primary-900: #164e63;
+    --color-primary-950: #083344;
+}
+
+/* ─── Global base fixes ──────────────────────────────────────────────────── */
+button, [role="button"], a { cursor: pointer; }
+
+/* ─── Class-based dark mode variant ─────────────────────────────────────── */
+@variant dark (&:where(.dark, .dark *));
+
+/* ─── Dark Mode: Zero-specificity baseline (overridden by any utility) ───── */
+/* :where() has 0 specificity — acts as fallback for elements with no
+   explicit text/bg colour class (e.g. plain <button> text).              */
+:where(.dark) {
+    color: #f8fafc;
+    background-color: #0f172a;
+}
+
+/* ─── Dark Mode Global Overrides ─────────────────────────────────────────
+   Using .dark ancestor selector (specificity 0,2,0) to override
+   Tailwind utilities (0,1,0) without !important.
+   ──────────────────────────────────────────────────────────────────────── */
+
+/* Backgrounds */
+.dark .bg-white                         { background-color: #1e293b; } /* slate-800 */
+.dark .bg-slate-50, .dark .bg-gray-50   { background-color: #0f172a; } /* slate-900 */
+.dark .bg-gray-100                      { background-color: #1e293b; }
+.dark .bg-gray-200                      { background-color: #334155; } /* slate-700 */
+
+/* Hover backgrounds */
+.dark .hover\:bg-white:hover             { background-color: #334155; }
+.dark .hover\:bg-gray-50:hover           { background-color: #1e293b; }
+.dark .hover\:bg-slate-50:hover          { background-color: #1e293b; }
+.dark .hover\:bg-gray-100:hover          { background-color: #334155; }
+
+/* Cyan accent backgrounds (active sidebar items, info banners) */
+.dark .bg-cyan-50                        { background-color: rgb(8 145 178 / 0.15); }
+.dark .bg-cyan-100                       { background-color: rgb(8 145 178 / 0.2); }
+.dark .hover\:bg-cyan-50:hover           { background-color: rgb(8 145 178 / 0.2); }
+.dark .hover\:bg-cyan-100:hover          { background-color: rgb(8 145 178 / 0.25); }
+
+/* Text — corrected scale (dimmer number = brighter in dark) */
+.dark .text-gray-900, .dark .text-slate-900 { color: #f8fafc; }
+.dark .text-gray-800                        { color: #e2e8f0; }
+.dark .text-gray-700, .dark .text-slate-700 { color: #cbd5e1; }
+.dark .text-gray-600, .dark .text-slate-600 { color: #94a3b8; }
+.dark .text-gray-500, .dark .text-slate-500 { color: #94a3b8; } /* was #64748b — too dim */
+.dark .text-gray-400, .dark .text-slate-400 { color: #64748b; } /* was #475569 — too dim */
+
+/* Hover text */
+.dark .hover\:text-gray-900:hover, .dark .hover\:text-slate-900:hover { color: #f8fafc; }
+.dark .hover\:text-gray-700:hover  { color: #cbd5e1; }
+.dark .hover\:text-gray-600:hover  { color: #94a3b8; }
+
+/* Borders */
+.dark .border-gray-100, .dark .border-slate-100 { border-color: #0f172a; }
+.dark .border-gray-200, .dark .border-slate-200 { border-color: #334155; }
+.dark .border-gray-300                          { border-color: #475569; }
+.dark .hover\:border-gray-300:hover             { border-color: #475569; }
+.dark .divide-gray-100 > * + *                  { border-color: #1e293b; }
+.dark .divide-gray-200 > * + *                  { border-color: #334155; }
+
+/* Form inputs */
+.dark input:not([type="checkbox"]):not([type="radio"]),
+.dark textarea,
+.dark select {
+    background-color: #1e293b;
+    color: #f8fafc;
+    border-color: #334155;
+}
+.dark input::placeholder,
+.dark textarea::placeholder { color: #475569; }
+
+/* Focus rings */
+.dark .focus\:ring-cyan-500:focus { --tw-ring-color: rgb(6 182 212 / 0.5); }
+
+/* Shadows — strengthen in dark mode for visibility */
+.dark .shadow-sm  { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.4); }
+.dark .shadow     { box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4); }
+.dark .shadow-md  { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5); }
+.dark .shadow-lg  { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5); }
+.dark .shadow-2xl { box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.6); }
+
+/* ── CKEditor 5 ──────────────────────────────────────────────────────────── */
+.ck-wrapper .ck.ck-editor__main .ck-content {
+    min-height: 280px;
+    font-family: 'Georgia', serif;
+    font-size: 1rem;
+    line-height: 1.75;
+    border-color: #d1d5db !important;
+    border-radius: 0 0 0.5rem 0.5rem !important;
+    background-color: #ffffff !important;
+    color: #111827 !important;
+}
+.ck-wrapper .ck.ck-toolbar {
+    border-color: #d1d5db !important;
+    border-radius: 0.5rem 0.5rem 0 0 !important;
+    background-color: #f9fafb !important;
+}
+.ck-wrapper .ck.ck-toolbar .ck-button,
+.ck-wrapper .ck.ck-toolbar .ck-button__label {
+    color: #374151 !important;
+}
+.ck-wrapper .ck.ck-toolbar .ck-button:hover,
+.ck-wrapper .ck.ck-toolbar .ck-button.ck-on {
+    background-color: #e5e7eb !important;
+}
+.ck-wrapper .ck.ck-editor__main .ck-content:focus {
+    border-color: #06b6d4 !important;
+    box-shadow: 0 0 0 2px rgb(6 182 212 / 0.2) !important;
+    outline: none;
+}
+/* Dark mode — CKEditor həmişə açıq rəngdə qalır */
+.dark .ck-wrapper .ck.ck-editor__main .ck-content {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border-color: #d1d5db !important;
+}
+.dark .ck-wrapper .ck.ck-toolbar {
+    background-color: #f9fafb !important;
+    border-color: #d1d5db !important;
+}
+.dark .ck-wrapper .ck.ck-toolbar .ck-button,
+.dark .ck-wrapper .ck.ck-toolbar .ck-button__label {
+    color: #374151 !important;
+    background-color: transparent !important;
+}
+.dark .ck-wrapper .ck.ck-toolbar .ck-button:hover {
+    background-color: #e5e7eb !important;
 }

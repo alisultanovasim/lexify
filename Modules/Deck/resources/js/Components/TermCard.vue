@@ -129,7 +129,7 @@ const removeExample = (i) => form.examples.splice(i, 1);
       <div class="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
         <img v-if="currentImage" :src="currentImage" class="w-full h-full object-cover" :alt="term.term" />
         <button v-else @click.stop="showImagePicker = true"
-          class="w-full h-full flex items-center justify-center text-gray-300 hover:text-indigo-400 hover:bg-indigo-50 transition text-xl">
+          class="w-full h-full flex items-center justify-center text-gray-300 hover:text-cyan-400 hover:bg-cyan-50 transition text-xl">
           🖼️
         </button>
       </div>
@@ -142,7 +142,7 @@ const removeExample = (i) => form.examples.splice(i, 1);
           </span>
           <span class="font-semibold text-gray-900">{{ term.term }}</span>
           <span v-if="term.plural_form" class="text-sm text-gray-400">/ {{ term.plural_form }}</span>
-          <span v-if="term.pronunciation" class="text-xs text-indigo-500 font-mono">/{{ term.pronunciation }}/</span>
+          <span v-if="term.pronunciation" class="text-xs text-cyan-500 font-mono">/{{ term.pronunciation }}/</span>
           <SpeakButton :text="term.term" :lang="deck.source_language?.code || 'de'" size="sm" />
         </div>
         <p class="text-sm text-gray-500 truncate">{{ term.definition }}</p>
@@ -154,7 +154,7 @@ const removeExample = (i) => form.examples.splice(i, 1);
           {{ { noun:'İsim', verb:'Fel', adjective:'Sifət', adverb:'Zərf', phrase:'İfadə', other:'Digər' }[term.part_of_speech] }}
         </span>
         <button @click.stop="editing = true"
-          class="p-1.5 text-gray-400 hover:text-indigo-600 transition rounded-lg hover:bg-indigo-50">✏️</button>
+          class="p-1.5 text-gray-400 hover:text-cyan-600 transition rounded-lg hover:bg-cyan-50">✏️</button>
         <button @click.stop="deleteTerm"
           class="p-1.5 text-gray-400 hover:text-red-500 transition rounded-lg hover:bg-red-50">🗑️</button>
         <span class="text-gray-300 text-sm ml-1">{{ expanded ? '▲' : '▼' }}</span>
@@ -207,14 +207,14 @@ const removeExample = (i) => form.examples.splice(i, 1);
             <div>
               <label class="block text-xs font-medium text-gray-600 mb-1">Söz</label>
               <input v-model="form.term" type="text" required
-                :class="['w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none',
+                :class="['w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none',
                          editErrors.term ? 'border-red-400' : 'border-gray-300']" />
               <p v-if="editErrors.term" class="text-red-500 text-xs mt-1">{{ editErrors.term[0] }}</p>
             </div>
             <div>
               <label class="block text-xs font-medium text-gray-600 mb-1">Tərcümə</label>
               <input v-model="form.definition" type="text" required
-                :class="['w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none',
+                :class="['w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none',
                          editErrors.definition ? 'border-red-400' : 'border-gray-300']" />
               <p v-if="editErrors.definition" class="text-red-500 text-xs mt-1">{{ editErrors.definition[0] }}</p>
             </div>
@@ -225,7 +225,7 @@ const removeExample = (i) => form.examples.splice(i, 1);
             class="p-3 bg-gray-50 rounded-xl text-sm text-gray-600 space-y-1">
             <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">✨ AI tərəfindən doldurulub</p>
             <div class="flex flex-wrap gap-2">
-              <span v-if="term.pronunciation" class="font-mono text-indigo-600">/{{ term.pronunciation }}/</span>
+              <span v-if="term.pronunciation" class="font-mono text-cyan-600">/{{ term.pronunciation }}/</span>
               <span v-if="term.gender" class="font-bold px-2 py-0.5 rounded text-xs" :class="genderClass">{{ term.gender }}</span>
               <span v-if="term.plural_form" class="text-gray-600">{{ term.plural_form }}</span>
               <span v-if="term.part_of_speech" class="bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full text-xs">
@@ -236,7 +236,7 @@ const removeExample = (i) => form.examples.splice(i, 1);
 
           <!-- Re-enrich button -->
           <button type="button" @click="reEnrich" :disabled="enriching"
-            class="w-full py-2 border border-indigo-300 text-indigo-600 rounded-xl text-sm font-medium hover:bg-indigo-50 disabled:opacity-50 transition flex items-center justify-center gap-2">
+            class="w-full py-2 border border-cyan-300 text-cyan-600 rounded-xl text-sm font-medium hover:bg-cyan-50 disabled:opacity-50 transition flex items-center justify-center gap-2">
             <svg v-if="enriching" class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
@@ -251,14 +251,14 @@ const removeExample = (i) => form.examples.splice(i, 1);
           <div>
             <div class="flex items-center justify-between mb-2">
               <label class="text-xs font-medium text-gray-600">Nümunə cümlələr</label>
-              <button type="button" @click="addExample" class="text-xs text-indigo-600 hover:underline">+ Əlavə et</button>
+              <button type="button" @click="addExample" class="text-xs text-cyan-600 hover:underline">+ Əlavə et</button>
             </div>
             <div v-for="(ex, i) in form.examples" :key="i" class="flex gap-2 mb-2">
               <div class="flex-1 space-y-1">
                 <input v-model="ex.sentence" type="text" placeholder="Nümunə..."
-                  class="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:ring-1 focus:ring-indigo-400" />
+                  class="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:ring-1 focus:ring-cyan-400" />
                 <input v-model="ex.translation" type="text" placeholder="Tərcümə..."
-                  class="w-full px-2.5 py-1.5 border border-gray-200 bg-gray-50 rounded-lg text-sm outline-none focus:ring-1 focus:ring-indigo-400" />
+                  class="w-full px-2.5 py-1.5 border border-gray-200 bg-gray-50 rounded-lg text-sm outline-none focus:ring-1 focus:ring-cyan-400" />
               </div>
               <button type="button" @click="removeExample(i)" class="text-gray-400 hover:text-red-500 self-start pt-1.5">✕</button>
             </div>
@@ -271,7 +271,7 @@ const removeExample = (i) => form.examples.splice(i, 1);
               Ləğv et
             </button>
             <button type="submit" :disabled="editProcessing"
-              class="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition text-sm font-medium">
+              class="flex-1 py-2.5 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 disabled:opacity-50 transition text-sm font-medium">
               {{ editProcessing ? 'Saxlanır...' : 'Saxla' }}
             </button>
           </div>

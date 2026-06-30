@@ -3,11 +3,11 @@ defineProps({ title: String });
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center p-4">
+  <div class="min-h-screen bg-gradient-to-br from-slate-50 to-cyan-50 flex items-center justify-center p-4">
     <Head :title="title" />
     <div class="w-full max-w-md">
       <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-2xl mb-4">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-cyan-500 rounded-2xl mb-4">
           <span class="text-white font-bold text-2xl">L</span>
         </div>
         <h1 class="text-3xl font-bold text-gray-900">LinguaCards</h1>

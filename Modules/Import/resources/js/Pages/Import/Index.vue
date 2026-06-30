@@ -179,7 +179,7 @@ const submit = async () => {
         <div v-else>
           <div class="flex items-center justify-between mb-3">
             <p class="font-semibold text-gray-900">AI zənginləşdirmə</p>
-            <span class="text-sm font-mono text-indigo-600">
+            <span class="text-sm font-mono text-cyan-600">
               {{ enrichedCount }}&nbsp;/&nbsp;{{ totalTerms }}&nbsp;({{ progressPct }}%)
             </span>
           </div>
@@ -187,14 +187,14 @@ const submit = async () => {
           <!-- Progress bar -->
           <div class="w-full bg-gray-100 rounded-full h-4 mb-3 overflow-hidden">
             <div
-              class="h-4 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600 transition-all duration-500 ease-out"
+              class="h-4 rounded-full bg-gradient-to-r from-cyan-500 to-cyan-600 transition-all duration-500 ease-out"
               :style="{ width: progressPct + '%' }"
             />
           </div>
 
           <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
             <span class="flex items-center gap-1.5 min-w-0">
-              <svg class="animate-spin h-3.5 w-3.5 text-indigo-500 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+              <svg class="animate-spin h-3.5 w-3.5 text-cyan-500 flex-shrink-0" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
               </svg>
@@ -212,7 +212,7 @@ const submit = async () => {
                 v-for="(t, i) in createdTerms"
                 :key="t.id"
                 class="flex items-center gap-3 px-4 py-2 text-sm"
-                :class="termStatus[i] === 'active' ? 'bg-indigo-50' : ''"
+                :class="termStatus[i] === 'active' ? 'bg-cyan-50' : ''"
               >
                 <!-- Status icon -->
                 <span class="w-5 flex-shrink-0 text-center">
@@ -220,7 +220,7 @@ const submit = async () => {
                     <span class="text-green-500 text-base">✓</span>
                   </template>
                   <template v-else-if="termStatus[i] === 'active'">
-                    <svg class="animate-spin h-4 w-4 text-indigo-500 inline" fill="none" viewBox="0 0 24 24">
+                    <svg class="animate-spin h-4 w-4 text-cyan-500 inline" fill="none" viewBox="0 0 24 24">
                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                     </svg>
@@ -231,7 +231,7 @@ const submit = async () => {
                 </span>
                 <span class="text-xs text-gray-400 w-6 flex-shrink-0">{{ i + 1 }}</span>
                 <span
-                  :class="['font-medium truncate', termStatus[i] === 'done' ? 'text-gray-700' : termStatus[i] === 'active' ? 'text-indigo-700' : 'text-gray-400']"
+                  :class="['font-medium truncate', termStatus[i] === 'done' ? 'text-gray-700' : termStatus[i] === 'active' ? 'text-cyan-700' : 'text-gray-400']"
                 >{{ t.term }}</span>
                 <span v-if="termStatus[i] === 'done'" class="ml-auto text-xs text-green-500 flex-shrink-0">AI ✨</span>
               </div>
@@ -250,12 +250,12 @@ const submit = async () => {
           <div class="flex gap-2 mb-4">
             <button @click="mode = 'semicolon'; preview = []"
               :class="['flex-1 py-2 text-sm rounded-xl border transition font-medium',
-                mode === 'semicolon' ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-300 text-gray-600 hover:bg-gray-50']">
+                mode === 'semicolon' ? 'bg-cyan-600 text-white border-cyan-600' : 'border-gray-300 text-gray-600 hover:bg-gray-50']">
               Nöqtəli vergül (;)
             </button>
             <button @click="mode = 'lines'; preview = []"
               :class="['flex-1 py-2 text-sm rounded-xl border transition font-medium',
-                mode === 'lines' ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-300 text-gray-600 hover:bg-gray-50']">
+                mode === 'lines' ? 'bg-cyan-600 text-white border-cyan-600' : 'border-gray-300 text-gray-600 hover:bg-gray-50']">
               Sətir-sətir
             </button>
           </div>
@@ -277,7 +277,7 @@ const submit = async () => {
               <button v-for="s in [{v:'tab',l:'Tab'},{v:'comma',l:','},{v:';',l:';'}]" :key="s.v"
                 @click="lineSep = s.v"
                 :class="['px-3 py-1.5 text-sm rounded-lg border transition',
-                  lineSep === s.v ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-300 text-gray-600 hover:bg-gray-50']">
+                  lineSep === s.v ? 'bg-cyan-600 text-white border-cyan-600' : 'border-gray-300 text-gray-600 hover:bg-gray-50']">
                 {{ s.l }}
               </button>
             </div>
@@ -289,13 +289,13 @@ const submit = async () => {
             :placeholder="mode === 'semicolon'
               ? 'die Bedeutung,əhəmiyyət;verbessern,yaxşılaşdırmaq;die Lebensqualität,həyat keyfiyyəti'
               : 'Haus\tev\nBaum\tağac\nBlume\tçiçək'"
-            class="w-full px-3 py-2 border border-gray-300 rounded-xl font-mono text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
+            class="w-full px-3 py-2 border border-gray-300 rounded-xl font-mono text-sm focus:ring-2 focus:ring-cyan-500 outline-none resize-none"
           ></textarea>
 
           <p v-if="parseError" class="text-red-500 text-xs mt-2">{{ parseError }}</p>
 
           <button @click="parse" :disabled="!rawText.trim()"
-            class="mt-3 w-full py-2.5 border-2 border-indigo-600 text-indigo-600 rounded-xl font-medium hover:bg-indigo-50 disabled:opacity-50 transition">
+            class="mt-3 w-full py-2.5 border-2 border-cyan-600 text-cyan-600 rounded-xl font-medium hover:bg-cyan-50 disabled:opacity-50 transition">
             Önizlə ({{ entryCount }} entry)
           </button>
         </div>
@@ -323,7 +323,7 @@ const submit = async () => {
             </div>
 
             <!-- Submit button / creating state -->
-            <div v-if="importState === 'creating'" class="w-full py-3 bg-indigo-600 text-white rounded-xl flex items-center justify-center gap-2 opacity-80">
+            <div v-if="importState === 'creating'" class="w-full py-3 bg-cyan-600 text-white rounded-xl flex items-center justify-center gap-2 opacity-80">
               <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
@@ -331,7 +331,7 @@ const submit = async () => {
               <span>Sözlər yaradılır...</span>
             </div>
             <button v-else @click="submit"
-              class="w-full py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition flex items-center justify-center gap-2">
+              class="w-full py-3 bg-cyan-600 text-white rounded-xl font-medium hover:bg-cyan-700 transition flex items-center justify-center gap-2">
               ✨ {{ preview.length }} Sözu Import Et + AI
             </button>
 

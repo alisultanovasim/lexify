@@ -13,7 +13,7 @@ const props = defineProps({
 });
 
 const modeLabels = { flashcard:'Kartlar', learn:'Öyrən', write:'Yaz', match:'Uyğunlaş', test:'Test' };
-const modeColors = { flashcard:'bg-indigo-100 text-indigo-700', learn:'bg-purple-100 text-purple-700', write:'bg-blue-100 text-blue-700', match:'bg-green-100 text-green-700', test:'bg-orange-100 text-orange-700' };
+const modeColors = { flashcard:'bg-cyan-100 text-cyan-700', learn:'bg-purple-100 text-purple-700', write:'bg-blue-100 text-blue-700', match:'bg-green-100 text-green-700', test:'bg-orange-100 text-orange-700' };
 </script>
 
 <template>
@@ -34,7 +34,7 @@ const modeColors = { flashcard:'bg-indigo-100 text-indigo-700', learn:'bg-purple
         </div>
         <div class="bg-white rounded-2xl border border-gray-200 p-6">
           <p class="text-sm text-gray-500 mb-1">Öyrənilmiş söz</p>
-          <p class="text-4xl font-bold text-indigo-600">{{ studiedTerms }}</p>
+          <p class="text-4xl font-bold text-cyan-600">{{ studiedTerms }}</p>
           <p class="text-xs text-gray-400 mt-1">{{ totalTerms > 0 ? Math.round(studiedTerms/totalTerms*100) : 0 }}% tamamlanıb</p>
         </div>
       </div>
@@ -71,7 +71,7 @@ const modeColors = { flashcard:'bg-indigo-100 text-indigo-700', learn:'bg-purple
 
           <button v-if="dueToday.length > 0 && deckProgress.length > 0"
             @click="router.visit(`/decks/${deckProgress[0]?.id}/study/learn`)"
-            class="mt-4 block w-full py-2.5 text-center bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition">
+            class="mt-4 block w-full py-2.5 text-center bg-cyan-600 text-white rounded-xl text-sm font-medium hover:bg-cyan-700 transition">
             Təkrara Başla
           </button>
         </div>
@@ -90,7 +90,7 @@ const modeColors = { flashcard:'bg-indigo-100 text-indigo-700', learn:'bg-purple
               <div class="flex items-center justify-between mb-1">
                 <div class="flex items-center gap-2">
                   <div class="w-3 h-3 rounded-full" :style="{ background: deck.color }"></div>
-                  <button @click="router.visit(`/decks/${deck.id}`)" class="text-sm font-medium text-gray-900 hover:text-indigo-600 transition">
+                  <button @click="router.visit(`/decks/${deck.id}`)" class="text-sm font-medium text-gray-900 hover:text-cyan-600 transition">
                     {{ deck.title }}
                   </button>
                 </div>

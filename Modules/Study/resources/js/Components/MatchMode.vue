@@ -77,8 +77,8 @@ const getItemClass = (item) => {
   const key = getItemKey(item);
   if (matched.value.has(key))                                          return 'bg-green-100 border-green-400 text-green-800 cursor-default';
   if (wrong.value.has(key))                                            return 'bg-red-100 border-red-400 text-red-800 animate-shake';
-  if (selected.value && getItemKey(selected.value) === key)            return 'bg-indigo-100 border-indigo-500 text-indigo-800 scale-105';
-  return 'bg-white border-gray-200 text-gray-800 hover:border-indigo-400 hover:bg-indigo-50 cursor-pointer';
+  if (selected.value && getItemKey(selected.value) === key)            return 'bg-cyan-100 border-cyan-500 text-cyan-800 scale-105';
+  return 'bg-white border-gray-200 text-gray-800 hover:border-cyan-400 hover:bg-cyan-50 cursor-pointer';
 };
 
 // Overall progress (across all sessions for this deck)
@@ -105,7 +105,7 @@ const overallProgress = computed(() => {
         <span>{{ Math.min(matchProgress.matched + score.correct, matchProgress.total) }} / {{ matchProgress.total }}</span>
       </div>
       <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-        <div class="h-full bg-indigo-500 rounded-full transition-all"
+        <div class="h-full bg-cyan-500 rounded-full transition-all"
           :style="{ width: matchProgress.total > 0
             ? (Math.min(matchProgress.matched + score.correct, matchProgress.total) / matchProgress.total * 100) + '%'
             : '0%' }" />
@@ -117,7 +117,7 @@ const overallProgress = computed(() => {
 
     <div class="flex gap-3 justify-center">
       <button @click="router.visit(`/decks/${deck.id}/study/match`)"
-        class="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition">
+        class="px-6 py-3 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 transition">
         {{ matchProgress && (matchProgress.matched + score.correct) >= matchProgress.total ? '🔄 Yenidən' : 'Davam et →' }}
       </button>
       <button @click="router.visit(`/decks/${deck.id}`)"
@@ -141,7 +141,7 @@ const overallProgress = computed(() => {
         <span>{{ matchProgress.matched }} / {{ matchProgress.total }} uyğunlaşdırılıb</span>
       </div>
       <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-        <div class="h-full bg-indigo-400 rounded-full transition-all"
+        <div class="h-full bg-cyan-400 rounded-full transition-all"
           :style="{ width: matchProgress.total > 0 ? (matchProgress.matched / matchProgress.total * 100) + '%' : '0%' }" />
       </div>
     </div>

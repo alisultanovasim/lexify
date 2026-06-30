@@ -130,7 +130,7 @@ const skip = async () => {
     <p class="text-gray-400 text-sm mb-8">{{ round }} tur, {{ results?.correct }} düzgün</p>
     <div class="flex gap-3 justify-center">
       <button @click="router.visit(`/decks/${deck.id}/study/learn`)"
-        class="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition">Yenidən</button>
+        class="px-6 py-3 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 transition">Yenidən</button>
       <button @click="router.visit(`/decks/${deck.id}`)"
         class="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition">Dəstə Qayıt</button>
     </div>
@@ -157,7 +157,7 @@ const skip = async () => {
         </span>
       </div>
       <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-        <div class="h-full bg-indigo-500 rounded-full transition-all" :style="{ width: progress + '%' }"></div>
+        <div class="h-full bg-cyan-500 rounded-full transition-all" :style="{ width: progress + '%' }"></div>
       </div>
     </div>
 
@@ -184,7 +184,7 @@ const skip = async () => {
           <SpeakButton v-if="current?.term" :text="current.term" :lang="deck.source_language?.code || 'de'" size="lg" />
         </div>
       </div>
-      <p v-if="current?.pronunciation" class="text-indigo-500 font-mono text-sm">/{{ current.pronunciation }}/</p>
+      <p v-if="current?.pronunciation" class="text-cyan-500 font-mono text-sm">/{{ current.pronunciation }}/</p>
       <p v-if="current?.notes && submitted" class="text-gray-500 text-sm italic mt-2">{{ current.notes }}</p>
     </div>
 
@@ -200,7 +200,7 @@ const skip = async () => {
           'w-full px-4 py-3 text-lg border-2 rounded-xl outline-none transition',
           submitted
             ? isCorrect ? 'border-green-400 bg-green-50 text-green-800' : 'border-red-400 bg-red-50 text-red-800'
-            : 'border-gray-300 focus:border-indigo-500'
+            : 'border-gray-300 focus:border-cyan-500'
         ]"
         @keyup.enter="submitted ? next() : submit()"
         autofocus
@@ -220,7 +220,7 @@ const skip = async () => {
     <div class="flex gap-3">
       <template v-if="!submitted">
         <button @click="submit" :disabled="!userAnswer.trim()"
-          class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition">
+          class="flex-1 py-3 bg-cyan-600 text-white rounded-xl font-medium hover:bg-cyan-700 disabled:opacity-50 transition">
           Yoxla
         </button>
         <button @click="skip"

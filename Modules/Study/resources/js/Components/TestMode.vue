@@ -70,7 +70,7 @@ const next = async () => {
 };
 
 const choiceClass = (choice) => {
-  if (!submitted.value) return 'border-gray-200 text-gray-800 hover:border-indigo-400 hover:bg-indigo-50 cursor-pointer';
+  if (!submitted.value) return 'border-gray-200 text-gray-800 hover:border-cyan-400 hover:bg-cyan-50 cursor-pointer';
   if (choice === current.value.correct) return 'border-green-400 bg-green-50 text-green-800';
   if (choice === selected.value && choice !== current.value.correct) return 'border-red-400 bg-red-50 text-red-800';
   return 'border-gray-200 text-gray-400 cursor-default';
@@ -100,7 +100,7 @@ const choiceClass = (choice) => {
         ⚡ {{ results.incorrect }} Yanlışı Yenidən
       </button>
       <button @click="router.visit(`/decks/${deck.id}/study/test?fresh=1`)"
-        class="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-medium">
+        class="px-6 py-3 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 transition font-medium">
         🔄 Yenidən Başla
       </button>
       <button @click="router.visit(`/decks/${deck.id}`)"
@@ -138,7 +138,7 @@ const choiceClass = (choice) => {
         <span>{{ progress }}%</span>
       </div>
       <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-        <div class="h-full bg-indigo-500 rounded-full transition-all duration-300" :style="{ width: progress + '%' }"></div>
+        <div class="h-full bg-cyan-500 rounded-full transition-all duration-300" :style="{ width: progress + '%' }"></div>
       </div>
     </div>
 
@@ -162,7 +162,7 @@ const choiceClass = (choice) => {
           }">{{ current.term.gender }}</span>
         <p class="text-3xl font-bold text-gray-900">{{ current.term.term }}</p>
       </div>
-      <p v-if="current.term.pronunciation" class="text-indigo-500 font-mono text-sm mt-2">
+      <p v-if="current.term.pronunciation" class="text-cyan-500 font-mono text-sm mt-2">
         /{{ current.term.pronunciation }}/
       </p>
     </div>

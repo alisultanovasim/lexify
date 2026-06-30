@@ -5,7 +5,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue';
 import TermCard from '../../Components/TermCard.vue';
 import axios from 'axios';
 
-const props = defineProps({ deck: Object });
+const props = defineProps({ deck: Object, stories: { type: Array, default: () => [] } });
 
 // ── Infinite scroll state ────────────────────────────────────────────────
 const terms       = ref([]);
@@ -134,11 +134,36 @@ const studyModes = [
           v-for="sm in studyModes"
           :key="sm.mode"
           @click="go(`/decks/${deck.id}/study/${sm.mode}`)"
-          class="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl border border-gray-200 hover:border-indigo-400 hover:shadow-md transition group cursor-pointer"
+          class="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl border border-gray-200 hover:border-cyan-400 hover:shadow-md transition group cursor-pointer"
         >
           <span class="text-2xl">{{ sm.emoji }}</span>
-          <span class="text-sm font-medium text-gray-700 group-hover:text-indigo-600">{{ sm.label }}</span>
+          <span class="text-sm font-medium text-gray-700 group-hover:text-cyan-600">{{ sm.label }}</span>
         </button>
+      </div>
+
+      <!-- Associated Stories -->
+      <div v-if="stories.length" class="mb-8">
+        <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Bağlı Hekayələr</h2>
+        <div class="flex flex-wrap gap-3">
+          <button
+            v-for="story in stories"
+            :key="story.id"
+            @click="go(`/stories/${story.id}`)"
+            class="flex items-center gap-2.5 px-4 py-2.5 bg-white border border-gray-200 rounded-xl hover:border-cyan-400 hover:shadow-sm transition group"
+          >
+            <span class="text-lg">📖</span>
+            <span class="text-sm font-medium text-gray-800 group-hover:text-cyan-600">{{ story.title }}</span>
+            <span v-if="story.level"
+              class="text-xs font-bold px-1.5 py-0.5 rounded-full"
+              :class="{
+                'bg-green-100 text-green-700':  ['A1','A2'].includes(story.level),
+                'bg-blue-100 text-blue-700':    ['B1','B2'].includes(story.level),
+                'bg-purple-100 text-purple-700':['C1','C2'].includes(story.level),
+              }">
+              {{ story.level }}
+            </span>
+          </button>
+        </div>
       </div>
 
       <!-- Toolbar: search + add -->
@@ -148,7 +173,7 @@ const studyModes = [
             v-model="termSearch"
             type="text"
             placeholder="Sözlərdə axtar..."
-            class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+            class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-cyan-500 outline-none bg-white"
           />
           <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
           <button v-if="termSearch" @click="termSearch = ''" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">✕</button>
@@ -156,7 +181,7 @@ const studyModes = [
         <span class="text-sm text-gray-500 whitespace-nowrap">{{ totalCount }} söz</span>
         <button
           @click="go(`/decks/${deck.id}/terms/create`)"
-          class="inline-flex items-center gap-1 px-4 py-2 bg-indigo-600 text-white text-sm rounded-xl hover:bg-indigo-700 transition whitespace-nowrap"
+          class="inline-flex items-center gap-1 px-4 py-2 bg-cyan-600 text-white text-sm rounded-xl hover:bg-cyan-700 transition whitespace-nowrap"
         >
           + Söz Əlavə Et
         </button>
@@ -166,7 +191,7 @@ const studyModes = [
       <div v-if="totalCount === 0 && !loadingMore" class="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-300">
         <div class="text-5xl mb-4">📝</div>
         <p class="text-gray-500 mb-4">Bu dəstdə hələ söz yoxdur</p>
-        <button @click="go(`/decks/${deck.id}/terms/create`)" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm hover:bg-indigo-700 transition">
+        <button @click="go(`/decks/${deck.id}/terms/create`)" class="px-4 py-2 bg-cyan-600 text-white rounded-xl text-sm hover:bg-cyan-700 transition">
           İlk Sözu Əlavə Et
         </button>
       </div>

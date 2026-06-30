@@ -66,12 +66,20 @@ const selectImage = async (img, index) => {
   try {
     const res = await axios.post(`/terms/${props.termId}/image`, {
       url:      img.url,
-      alt_text: img.title,
+      alt_text: (img.title || '').substring(0, 200),
     });
     emit('selected', res.data.image.url);
-  } catch {
-    saveError.value = 'Şəkil saxlanarkən xəta. Yenidən cəhd edin.';
-    savingIdx.value = -1;
+  } catch (e) {
+    console.error('[ImagePicker] save error:', e?.response?.status, e?.response?.data, e?.message)
+    if (e?.response?.status === 419) {
+      saveError.value = 'Sessiya vaxtı bitib. Zəhmət olmasa səhifəni yeniləyin (F5).';
+    } else {
+      const status = e?.response?.status ? ` (${e.response.status})` : ''
+      saveError.value = e?.response?.data?.message
+        || e?.response?.data?.errors?.url?.[0]
+        || `Xəta${status}: saxlama uğursuz oldu`
+    }
+    savingIdx.value = -1
   }
   // Note: on success, parent closes the picker via @selected handler
   // If parent doesn't close, reset after 5s
@@ -100,13 +108,13 @@ onMounted(() => {
             v-model="query"
             type="text"
             placeholder="Axtarış et..."
-            class="flex-1 px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+            class="flex-1 px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none"
             @keyup.enter="search"
           />
           <button
             @click="search"
             :disabled="loading || !query.trim()"
-            class="px-5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition font-medium"
+            class="px-5 py-2 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 disabled:opacity-50 transition font-medium"
           >
             {{ loading ? '...' : 'Axtar' }}
           </button>
@@ -144,10 +152,10 @@ onMounted(() => {
             :disabled="savingIdx !== -1"
             class="aspect-square rounded-xl overflow-hidden border-2 transition group relative"
             :class="savingIdx === i
-              ? 'border-indigo-500 cursor-wait'
+              ? 'border-cyan-500 cursor-wait'
               : savingIdx !== -1
                 ? 'border-transparent opacity-70 cursor-not-allowed'
-                : 'border-transparent hover:border-indigo-500 cursor-pointer'"
+                : 'border-transparent hover:border-cyan-500 cursor-pointer'"
           >
             <img
               :src="img.thumbnail"

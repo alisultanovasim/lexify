@@ -7,8 +7,11 @@ import '../css/app.css';
 
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 axios.defaults.headers.common['Accept'] = 'application/json';
-const token = document.head.querySelector('meta[name="csrf-token"]');
-if (token) axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
+// Use cookie-based CSRF (XSRF-TOKEN cookie → X-XSRF-TOKEN header).
+// Laravel refreshes this cookie on every response, so it stays current
+// even after Inertia client-side navigation (meta tag approach goes stale).
+axios.defaults.withCredentials = true;
+axios.defaults.withXSRFToken = true;
 
 const appName = import.meta.env.VITE_APP_NAME || 'LinguaCards';
 

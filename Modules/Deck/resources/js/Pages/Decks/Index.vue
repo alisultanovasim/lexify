@@ -18,7 +18,7 @@ const deckColors = ['#6366f1','#ec4899','#f59e0b','#10b981','#3b82f6','#8b5cf6']
         </div>
         <button
           @click="router.visit('/decks/create')"
-          class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition"
+          class="inline-flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-xl font-medium hover:bg-cyan-700 transition"
         >
           <span class="text-lg">+</span>
           Yeni Dəst
@@ -30,7 +30,7 @@ const deckColors = ['#6366f1','#ec4899','#f59e0b','#10b981','#3b82f6','#8b5cf6']
         <div class="text-6xl mb-4">📚</div>
         <h3 class="text-lg font-semibold text-gray-900 mb-2">Hələ dəst yoxdur</h3>
         <p class="text-gray-500 mb-6">İlk söz dəstinizi yaradın</p>
-        <button @click="router.visit('/decks/create')" class="px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition">
+        <button @click="router.visit('/decks/create')" class="px-6 py-3 bg-cyan-600 text-white rounded-xl font-medium hover:bg-cyan-700 transition">
           Dəst Yarat
         </button>
       </div>
@@ -41,7 +41,7 @@ const deckColors = ['#6366f1','#ec4899','#f59e0b','#10b981','#3b82f6','#8b5cf6']
           v-for="deck in decks"
           :key="deck.id"
           @click="router.visit(`/decks/${deck.id}`)"
-          class="group bg-white rounded-2xl border border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all p-5 block text-left w-full"
+          class="group bg-white rounded-2xl border border-gray-200 hover:border-cyan-300 hover:shadow-md transition-all p-5 block text-left w-full"
         >
           <div class="flex items-start justify-between mb-4">
             <div
@@ -57,7 +57,7 @@ const deckColors = ['#6366f1','#ec4899','#f59e0b','#10b981','#3b82f6','#8b5cf6']
             </div>
           </div>
 
-          <h3 class="font-semibold text-gray-900 group-hover:text-indigo-600 transition line-clamp-2">
+          <h3 class="font-semibold text-gray-900 group-hover:text-cyan-600 transition line-clamp-2">
             {{ deck.title }}
           </h3>
           <p v-if="deck.description" class="text-sm text-gray-500 mt-1 line-clamp-2">{{ deck.description }}</p>

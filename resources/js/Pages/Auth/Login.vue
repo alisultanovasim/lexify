@@ -81,7 +81,7 @@ const passwordError = computed(() => form.errors.password || page.props.errors?.
           v-model="form.email"
           name="email"
           type="email"
-          :class="['w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none',
+          :class="['w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none',
                    emailError ? 'border-red-400 bg-red-50' : 'border-gray-300']"
           required autofocus autocomplete="email"
         />
@@ -98,7 +98,7 @@ const passwordError = computed(() => form.errors.password || page.props.errors?.
           v-model="form.password"
           name="password"
           type="password"
-          :class="['w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none',
+          :class="['w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none',
                    passwordError ? 'border-red-400 bg-red-50' : 'border-gray-300']"
           required autocomplete="current-password"
         />
@@ -115,17 +115,17 @@ const passwordError = computed(() => form.errors.password || page.props.errors?.
             v-model="form.remember"
             name="remember"
             type="checkbox"
-            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            class="rounded border-gray-300 text-cyan-600 focus:ring-cyan-500"
           />
           Məni xatırla
         </label>
-        <a href="/forgot-password" class="text-sm text-indigo-600 hover:underline">Şifrəni unutdum</a>
+        <a href="/forgot-password" class="text-sm text-cyan-600 hover:underline">Şifrəni unutdum</a>
       </div>
 
       <button
         type="submit"
         :disabled="form.processing"
-        class="w-full py-2.5 px-4 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 transition"
+        class="w-full py-2.5 px-4 bg-cyan-600 text-white rounded-lg font-medium hover:bg-cyan-700 disabled:opacity-50 transition"
       >
         {{ form.processing ? 'Daxil olunur...' : 'Daxil ol' }}
       </button>
@@ -149,7 +149,7 @@ const passwordError = computed(() => form.errors.password || page.props.errors?.
 
     <p class="text-center text-sm text-gray-500 mt-6">
       Hesabınız yoxdur?
-      <a href="/register" class="text-indigo-600 hover:underline font-medium">Qeydiyyat</a>
+      <a href="/register" class="text-cyan-600 hover:underline font-medium">Qeydiyyat</a>
     </p>
   </GuestLayout>
 </template>

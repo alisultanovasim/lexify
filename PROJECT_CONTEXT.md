@@ -245,4 +245,68 @@ Baum	ağac
 
 ---
 
-*Bu fayl avtomatik yenilənir. Son yeniləmə: 2026-06-12*
+## 16. UI Dizayn Sistemi (2026-06-26 yeniləndi)
+
+### Layout: Sol Sidebar
+`resources/js/Layouts/AppLayout.vue` — top navbar **silinib**, yerinə **sol sidebar (w-60)** gəlib:
+- Sidebar: Logo (cyan-500), nav linklər, alt hissədə user avatar + çıxış
+- Aktiv link: `bg-cyan-50 text-cyan-700`
+- Main content: `ml-60` offset ilə
+- Nav links: `/decks`, `/explore`, `/progress`, `/stories`, `/import`
+
+`resources/js/Layouts/GuestLayout.vue` — auth sehifeler ucun:
+- Arxa fon: `bg-gradient-to-br from-slate-50 to-cyan-50`
+- Logo badge: `bg-cyan-500`
+
+### Rəng Palitası: "The Smart EdTech"
+| Məqsəd | Tailwind Sinfi | Hex |
+|--------|---------------|-----|
+| Primary CTA (Study, Enrich) | `bg-cyan-500` | #06B6D4 |
+| Primary hover | `bg-cyan-600` | #0891B2 |
+| Aktiv link fon | `bg-cyan-50` | #ECFEFF |
+| Aktiv link mətn | `text-cyan-700` | #0E7490 |
+| Arxa fon | `bg-slate-50` | #F8FAFC |
+| Kart fonu | `bg-white` | #FFFFFF |
+| Kənar | `border-slate-200` | #E2E8F0 |
+| Uğur | `bg-green-500` | #10B981 |
+| Xəbərdarlıq | `bg-amber-500` | #F59E0B |
+| Xəta | `bg-red-500` | #EF4444 |
+
+**Qeyd**: Bütün `indigo-*` Tailwind sinifləri `cyan-*` ilə əvəz edilib (2026-06-26).
+
+### CSS Dəyişənləri (`resources/css/app.css`)
+`--color-primary-500: #06b6d4` (cyan) — əvvəlki `#6366f1` (indigo) idi.
+
+### Flashcard Arxa Kart
+`FlashcardMode.vue` — back card dizaynı:
+- `bg-gradient-to-br from-blue-500 to-cyan-400` gradient
+- Bütün mətn `text-white` / `text-white/80`
+
+### Bütün Səhifələr (Əvvəl sənədləşdirilməyənlər)
+| Fayl | Məqsəd |
+|------|--------|
+| `resources/js/Pages/Dashboard.vue` | Giriş sonrası ev səhifəsi — statistika, son dəstlər |
+| `resources/js/Pages/Profile/Edit.vue` | İstifadəçi profil parametrləri |
+| `resources/js/Pages/Error/NotFound.vue` | 404 xəta səhifəsi |
+| `resources/js/Pages/Error/ServerError.vue` | 500 xəta səhifəsi |
+| `Modules/Deck/resources/js/Pages/Decks/Create.vue` | Yeni dəst yarat — rəng seçici, toggle |
+| `Modules/Deck/resources/js/Pages/Decks/Edit.vue` | Dəsti redaktə et |
+| `Modules/Deck/resources/js/Pages/Decks/Explore.vue` | İctimai dəstlər — axtarış, klon |
+| `Modules/Study/resources/js/Pages/Study/Session.vue` | Öyrənmə sessiyası konteyneri |
+| `Modules/Study/resources/js/Components/LearnMode.vue` | Adaptiv öyrənmə rejimi |
+| `Modules/Study/resources/js/Components/MatchMode.vue` | Cütləşdirmə oyunu (8 cüt) |
+| `Modules/Study/resources/js/Components/TestMode.vue` | Çoxseçimli test |
+| `Modules/Study/resources/js/Components/WriteMode.vue` | Yazı rejimi |
+| `Modules/Stories/resources/js/Pages/Stories/Create.vue` | Yeni hekayə yarat |
+| `Modules/Stories/resources/js/Pages/Stories/Edit.vue` | Hekayəni redaktə et |
+| `Modules/Progress/resources/js/Pages/Progress/Index.vue` | Tərəqqi dashboard — SM-2 statistikası |
+| `Modules/Import/resources/js/Pages/Import/Index.vue` | Toplu idxal (CSV) |
+
+### Cins Rəngləri (Alman artikelləri — dəyişdirilməyib)
+- `der` (kişi): `bg-blue-100 text-blue-700`
+- `die` (qadın): `bg-pink-100 text-pink-700`
+- `das` (netr): `bg-yellow-100 text-yellow-700`
+
+---
+
+*Bu fayl avtomatik yenilənir. Son yeniləmə: 2026-06-26*

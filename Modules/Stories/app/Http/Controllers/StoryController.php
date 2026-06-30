@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Deck\Models\Deck;
@@ -16,14 +17,16 @@ use Modules\Vocabulary\Services\GeminiEnrichmentService;
 
 class StoryController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $userId = auth()->id();
+        $sort   = $request->get('sort', 'desc');
+        $sort   = in_array($sort, ['asc', 'desc']) ? $sort : 'desc';
 
         $stories = Story::where('user_id', $userId)
             ->with('language', 'deck')
             ->withCount('reads')
-            ->latest()
+            ->orderBy('id', $sort)
             ->get()
             ->map(function (Story $story) use ($userId) {
                 $story->is_read = StoryRead::where('user_id', $userId)
@@ -32,7 +35,10 @@ class StoryController extends Controller
                 return $story;
             });
 
-        return Inertia::render('Stories::Stories/Index', ['stories' => $stories]);
+        return Inertia::render('Stories::Stories/Index', [
+            'stories' => $stories,
+            'sort'    => $sort,
+        ]);
     }
 
     public function create(): Response
@@ -51,6 +57,7 @@ class StoryController extends Controller
             'level'       => 'nullable|in:A1,A2,B1,B2,C1,C2',
             'deck_id'     => 'nullable|exists:decks,id',
             'language_id' => 'nullable|exists:languages,id',
+            'audio'       => 'nullable|file|mimes:mp3,ogg,wav,aac,m4a|max:51200',
         ]);
 
         if (!empty($data['deck_id'])) {
@@ -60,7 +67,14 @@ class StoryController extends Controller
             );
         }
 
+        unset($data['audio']);
         $story = Story::create(array_merge($data, ['user_id' => auth()->id()]));
+
+        if ($request->hasFile('audio')) {
+            $ext  = $request->file('audio')->getClientOriginalExtension();
+            $path = $request->file('audio')->storeAs("story_audio/{$story->id}", "audio.{$ext}", 'public');
+            $story->update(['audio_path' => $path]);
+        }
 
         return redirect()->route('stories.show', $story)->with('success', 'Hekayə əlavə edildi!');
     }
@@ -102,10 +116,13 @@ class StoryController extends Controller
         abort_if($story->user_id !== auth()->id(), 403);
 
         $data = $request->validate([
-            'title'       => 'required|string|max:255',
-            'level'       => 'nullable|in:A1,A2,B1,B2,C1,C2',
-            'deck_id'     => 'nullable|exists:decks,id',
-            'language_id' => 'nullable|exists:languages,id',
+            'title'        => 'required|string|max:255',
+            'body'         => 'required|string',
+            'level'        => 'nullable|in:A1,A2,B1,B2,C1,C2',
+            'deck_id'      => 'nullable|exists:decks,id',
+            'language_id'  => 'nullable|exists:languages,id',
+            'audio'        => 'nullable|file|mimes:mp3,ogg,wav,aac,m4a|max:51200',
+            'delete_audio' => 'nullable|boolean',
         ]);
 
         if (!empty($data['deck_id'])) {
@@ -113,6 +130,20 @@ class StoryController extends Controller
                 Deck::where('id', $data['deck_id'])->where('user_id', auth()->id())->doesntExist(),
                 403
             );
+        }
+
+        unset($data['audio'], $data['delete_audio']);
+
+        if ($request->hasFile('audio')) {
+            if ($story->audio_path) {
+                Storage::disk('public')->delete($story->audio_path);
+            }
+            $ext  = $request->file('audio')->getClientOriginalExtension();
+            $path = $request->file('audio')->storeAs("story_audio/{$story->id}", "audio.{$ext}", 'public');
+            $data['audio_path'] = $path;
+        } elseif ($request->boolean('delete_audio') && $story->audio_path) {
+            Storage::disk('public')->delete($story->audio_path);
+            $data['audio_path'] = null;
         }
 
         $story->update($data);

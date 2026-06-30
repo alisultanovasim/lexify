@@ -91,8 +91,8 @@ const speak = () => {
     :class="[
       'rounded-full transition flex items-center justify-center flex-shrink-0',
       speaking
-        ? 'text-indigo-600 bg-indigo-50'
-        : 'text-gray-400 hover:text-indigo-500 hover:bg-indigo-50',
+        ? 'text-cyan-600 bg-cyan-50'
+        : 'text-gray-400 hover:text-cyan-500 hover:bg-cyan-50',
       size === 'sm' ? 'w-6 h-6'  : '',
       size === 'md' ? 'w-8 h-8'  : '',
       size === 'lg' ? 'w-10 h-10' : '',

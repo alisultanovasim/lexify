@@ -48,7 +48,7 @@ const modeLabels = {
       <!-- Fallback -->
       <div v-else class="text-center py-20">
         <button @click="router.visit(`/decks/${deck.id}`)"
-          class="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition">
+          class="px-6 py-3 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 transition">
           ← Dəstə Qayıt
         </button>
       </div>

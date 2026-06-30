@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import axios from 'axios';
 import { router } from '@inertiajs/vue3';
 import SpeakButton from '@/Components/SpeakButton.vue';
+import ImagePicker from '@modules/Deck/resources/js/Components/ImagePicker.vue';
 
 const props = defineProps({
   terms:        Array,
@@ -11,14 +12,26 @@ const props = defineProps({
   wrongTermIds: { type: Array, default: () => [] },
 });
 
-const currentIndex = ref(0);
-const flipped      = ref(false);
-const completed    = ref(false);
-const results      = ref(null);
-const startTime    = ref(Date.now());
+const currentIndex    = ref(0);
+const flipped         = ref(false);
+const completed       = ref(false);
+const results         = ref(null);
+const startTime       = ref(Date.now());
+const showImagePicker = ref(false);
+const imageOverrides  = ref({});
 
 const current  = computed(() => props.terms[currentIndex.value]);
 const progress = computed(() => Math.round((currentIndex.value / props.terms.length) * 100));
+
+const currentImage = computed(() => {
+  if (!current.value) return null;
+  return imageOverrides.value[current.value.id] ?? current.value.image ?? null;
+});
+
+const onImageSelected = (imageUrl) => {
+  if (current.value) imageOverrides.value[current.value.id] = imageUrl;
+  showImagePicker.value = false;
+};
 
 // Whether this session was loaded with wrong-terms-first ordering
 const resumingWrong = computed(() => props.wrongTermIds.length > 0);
@@ -83,7 +96,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
 
       <!-- Fresh start with all terms -->
       <button @click="router.visit(`/decks/${deck.id}/study/flashcard?fresh=1`)"
-        class="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-medium">
+        class="px-6 py-3 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 transition font-medium">
         🔄 Hamısını Yenidən
       </button>
 
@@ -121,7 +134,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
         </span>
       </div>
       <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-        <div class="h-full bg-indigo-500 rounded-full transition-all duration-300" :style="{ width: progress + '%' }"></div>
+        <div class="h-full bg-cyan-500 rounded-full transition-all duration-300" :style="{ width: progress + '%' }"></div>
       </div>
     </div>
 
@@ -140,8 +153,17 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
             class="absolute top-3 left-3 text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-medium">
             keçən dəfə yanlış
           </span>
-          <div v-if="current?.image" class="mb-4">
-            <img :src="current.image" class="max-h-32 rounded-xl object-cover" :alt="current?.term" />
+          <!-- Image picker button -->
+          <button @click.stop="showImagePicker = true"
+            class="absolute top-3 right-3 p-1.5 rounded-lg transition text-lg"
+            :class="currentImage
+              ? 'text-gray-300 hover:text-cyan-500 hover:bg-cyan-50'
+              : 'text-gray-200 hover:text-cyan-400 hover:bg-cyan-50'"
+            :title="currentImage ? 'Şəkli dəyiş' : 'Şəkil əlavə et'">
+            🖼️
+          </button>
+          <div v-if="currentImage" class="mb-4">
+            <img :src="currentImage" class="max-h-32 rounded-xl object-cover" :alt="current?.term" />
           </div>
           <div class="flex items-center gap-2 mb-2">
             <span v-if="current?.gender" class="text-sm font-bold px-2 py-0.5 rounded"
@@ -152,7 +174,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
               }">{{ current?.gender }}</span>
             <span class="text-3xl font-bold text-gray-900">{{ current?.term }}</span>
           </div>
-          <p v-if="current?.pronunciation" class="text-indigo-500 font-mono text-sm">/{{ current?.pronunciation }}/</p>
+          <p v-if="current?.pronunciation" class="text-cyan-500 font-mono text-sm">/{{ current?.pronunciation }}/</p>
           <div class="flex justify-center mt-3">
             <SpeakButton :text="current?.term" :lang="deck.source_language?.code || 'de'" size="lg" />
           </div>
@@ -160,13 +182,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
         </div>
 
         <!-- Back -->
-        <div class="absolute inset-0 bg-indigo-50 rounded-2xl border border-indigo-200 shadow-sm flex flex-col items-center justify-center p-8"
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-2xl shadow-lg flex flex-col items-center justify-center p-8"
           style="backface-visibility:hidden; transform:rotateY(180deg)">
-          <p class="text-3xl font-bold text-indigo-900 mb-3 text-center">{{ current?.definition }}</p>
-          <p v-if="current?.notes" class="text-indigo-600 text-sm italic text-center mb-3">{{ current?.notes }}</p>
+          <p class="text-3xl font-bold text-white mb-3 text-center">{{ current?.definition }}</p>
+          <p v-if="current?.notes" class="text-white/80 text-sm italic text-center mb-3">{{ current?.notes }}</p>
           <div v-if="current?.examples?.length" class="mt-2 text-center">
-            <p class="text-sm text-indigo-700 font-medium">{{ current.examples[0].sentence }}</p>
-            <p v-if="current.examples[0].translation" class="text-sm text-indigo-500 mt-0.5">{{ current.examples[0].translation }}</p>
+            <p class="text-sm text-white/90 font-medium">{{ current.examples[0].sentence }}</p>
+            <p v-if="current.examples[0].translation" class="text-sm text-white/70 mt-0.5">{{ current.examples[0].translation }}</p>
           </div>
         </div>
       </div>
@@ -188,4 +210,15 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
     </div>
 
   </div>
+
+  <Teleport to="body">
+    <ImagePicker
+      v-if="showImagePicker"
+      :term-id="current?.id"
+      :initial-query="current?.term"
+      :lang="deck.source_language?.code || 'en'"
+      @close="showImagePicker = false"
+      @selected="onImageSelected"
+    />
+  </Teleport>
 </template>

@@ -166,7 +166,7 @@ const imgErrorMessages = {
 
       <!-- AI info banner -->
       <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-4">
-        <div class="flex items-start gap-3 p-3 bg-indigo-50 border border-indigo-100 rounded-xl mb-5 text-sm text-indigo-700">
+        <div class="flex items-start gap-3 p-3 bg-cyan-50 border border-cyan-100 rounded-xl mb-5 text-sm text-cyan-700">
           <span class="text-lg">✨</span>
           <p>Söz + tərcümə yazın — AI <strong>tələffüz, cəm forması, nümunə cümlə</strong> avtomatik dolduracaq. Şəkil seçimi də göstəriləcək.</p>
         </div>
@@ -174,28 +174,28 @@ const imgErrorMessages = {
         <form @submit.prevent="submit" class="space-y-4">
           <div>
             <label for="term" class="block text-sm font-medium text-gray-700 mb-1">
-              Söz <span v-if="deck.source_language" class="text-indigo-500">{{ deck.source_language.flag_emoji }}</span>
+              Söz <span v-if="deck.source_language" class="text-cyan-500">{{ deck.source_language.flag_emoji }}</span>
             </label>
             <input id="term" v-model="form.term" name="term" type="text"
               placeholder="məs: das Haus"
-              class="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-lg"
+              class="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-lg"
               required autofocus />
             <p v-if="form.errors.term" class="text-red-500 text-xs mt-1">{{ form.errors.term }}</p>
           </div>
 
           <div>
             <label for="definition" class="block text-sm font-medium text-gray-700 mb-1">
-              Tərcümə <span v-if="deck.target_language" class="text-indigo-500">{{ deck.target_language.flag_emoji }}</span>
+              Tərcümə <span v-if="deck.target_language" class="text-cyan-500">{{ deck.target_language.flag_emoji }}</span>
             </label>
             <input id="definition" v-model="form.definition" name="definition" type="text"
               placeholder="məs: ev"
-              class="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-lg"
+              class="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-lg"
               required />
             <p v-if="form.errors.definition" class="text-red-500 text-xs mt-1">{{ form.errors.definition }}</p>
           </div>
 
           <button type="submit" :disabled="form.processing || enriching"
-            class="w-full py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-60 transition flex items-center justify-center gap-2">
+            class="w-full py-3 bg-cyan-600 text-white rounded-xl font-medium hover:bg-cyan-700 disabled:opacity-60 transition flex items-center justify-center gap-2">
             <svg v-if="form.processing || enriching" class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
@@ -231,7 +231,7 @@ const imgErrorMessages = {
                 <span v-if="enrichedTerm.plural_form" class="text-gray-500">/ {{ enrichedTerm.plural_form }}</span>
 
                 <!-- Pronunciation -->
-                <span v-if="enrichedTerm.pronunciation" class="font-mono text-indigo-600 text-xs">/{{ enrichedTerm.pronunciation }}/</span>
+                <span v-if="enrichedTerm.pronunciation" class="font-mono text-cyan-600 text-xs">/{{ enrichedTerm.pronunciation }}/</span>
 
                 <!-- Part of speech -->
                 <span v-if="enrichedTerm.part_of_speech" class="bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded text-xs">
@@ -275,11 +275,11 @@ const imgErrorMessages = {
                 v-model="imgSearchQuery"
                 type="text"
                 placeholder="Yenidən axtar..."
-                class="flex-1 px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none"
+                class="flex-1 px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-400 outline-none"
                 @keyup.enter="retrySearch"
               />
               <button @click="retrySearch" :disabled="imgLoading"
-                class="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition">
+                class="px-3 py-1.5 text-sm bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 disabled:opacity-50 transition">
                 🔍
               </button>
             </div>
@@ -310,10 +310,10 @@ const imgErrorMessages = {
               :disabled="savingIndex !== -1"
               class="aspect-square rounded-xl overflow-hidden border-2 transition group relative"
               :class="savingIndex === i
-                ? 'border-indigo-500 cursor-wait'
+                ? 'border-cyan-500 cursor-wait'
                 : savingIndex !== -1
                   ? 'border-transparent opacity-60 cursor-not-allowed'
-                  : 'border-transparent hover:border-indigo-500 cursor-pointer'"
+                  : 'border-transparent hover:border-cyan-500 cursor-pointer'"
             >
               <img :src="img.thumbnail" :alt="img.title"
                 class="w-full h-full object-cover transition duration-200"

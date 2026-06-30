@@ -99,21 +99,28 @@ class ImageController extends Controller
 
     public function save(Request $request, Term $term): JsonResponse
     {
-        $request->validate([
-            'url'      => 'required|url',
-            'alt_text' => 'nullable|string|max:255',
-        ]);
+        // Manual validator — avoids Inertia middleware converting 422 to a redirect
+        $url     = trim((string) $request->input('url', ''));
+        $altText = (string) $request->input('alt_text', $term->term);
+
+        if (empty($url)) {
+            return response()->json(['message' => 'URL tələb olunur'], 422);
+        }
+
+        // Truncate alt_text to 255 chars server-side (Pixabay tags can be long)
+        $altText = mb_substr($altText, 0, 255);
 
         $this->authorize('update', $term->deck);
 
-        $image = $this->storageService->saveFromUrl(
-            $term->id,
-            $request->url,
-            $request->alt_text ?? $term->term
-        );
+        try {
+            $image = $this->storageService->saveFromUrl($term->id, $url, $altText);
+        } catch (\Exception $e) {
+            Log::error('Image save failed', ['term_id' => $term->id, 'error' => $e->getMessage()]);
+            return response()->json(['message' => 'Şəkil saxlanarkən xəta: ' . $e->getMessage()], 422);
+        }
 
         if (!$image) {
-            return response()->json(['message' => 'Image could not be saved'], 422);
+            return response()->json(['message' => 'Şəkil yaradıla bilmədi'], 422);
         }
 
         return response()->json([

@@ -4,6 +4,7 @@ import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { router } from '@inertiajs/vue3'
 import axios from 'axios'
 
+
 const props = defineProps({
     story: Object,
     knownWords: Array,
@@ -20,9 +21,28 @@ function tokenize(text) {
     return tokens
 }
 
+function htmlToPlain(html) {
+    return html
+        // Boş abzaslar (CKEditor-un blank line-ları) → real paragraph break
+        .replace(/<p>\s*(&nbsp;|<br\s*\/?>)?\s*<\/p>/gi, '\n\n')
+        // Adi abzas keçidi → boşluq (bunlar orijinal sətir qırıqlarıdır, ayrı abzas deyil)
+        .replace(/<\/p>\s*<p>/gi, ' ')
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/ ([,\.;:!?»])/g, '$1')  // vergül/nöqtə öncəsi əlavə boşluğu sil
+        .replace(/[ \t]+/g, ' ')
+        .replace(/^[ \t]+|[ \t]+$/gm, '')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim()
+}
+
 // Split body into paragraphs, tokenize each paragraph separately
 const paragraphs = computed(() =>
-    props.story.body
+    htmlToPlain(props.story.body)
         .split(/\r?\n/)
         .map(line => ({ tokens: tokenize(line), empty: line.trim() === '' }))
 )
@@ -49,56 +69,84 @@ const isKnown = (word) => {
     return false
 }
 
-// ── Modal state — ref() + spread guarantees Vue detects every change ─────────
-const MODAL_DEFAULT = {
-    visible: false, word: '', loading: false,
-    found: false, term: null,
-    translating: false, translated: null,
-    adding: false, error: '',
+// ── Modal — each piece of state is its own ref, independently tracked by Vue ──
+const mVisible    = ref(false)
+const mWord       = ref('')
+const mLoading    = ref(false)
+const mFound      = ref(false)
+const mTerm       = ref(null)
+const mTranslating = ref(false)
+const mTranslated = ref(null)
+const mAdding     = ref(false)
+const mError      = ref('')
+
+function resetModal(word) {
+    mVisible.value    = true
+    mWord.value       = word
+    mLoading.value    = true
+    mFound.value      = false
+    mTerm.value       = null
+    mTranslating.value = false
+    mTranslated.value = null
+    mAdding.value     = false
+    mError.value      = ''
 }
-const modal = ref({ ...MODAL_DEFAULT })
-const m = (updates) => { modal.value = { ...modal.value, ...updates } }
 
 async function onWordClick(word) {
     const w = word.trim()
     if (!w || w.length < 2) return
 
-    if (modal.value.visible && modal.value.word === w) {
-        m({ visible: false })
+    // Eyni söz üçün translate gözlənilirsə — modal-ı sadəcə aç, state-i sıfırlama
+    if (mTranslating.value && mWord.value === w) {
+        mVisible.value = true
         return
     }
 
-    m({ ...MODAL_DEFAULT, visible: true, word: w, loading: true })
+    if (mVisible.value && mWord.value === w) {
+        mVisible.value = false
+        return
+    }
+
+    resetModal(w)
 
     try {
         const res = await axios.post(`/stories/${props.story.id}/lookup-word`, { word: w })
-        m({ found: res.data.found, term: res.data.term ?? null })
+        if (mWord.value !== w) return
+        mFound.value = res.data.found
+        mTerm.value  = res.data.term ?? null
     } catch {
-        m({ error: 'Xəta baş verdi' })
+        mError.value = 'Xəta baş verdi'
     } finally {
-        m({ loading: false })
+        if (mWord.value === w) mLoading.value = false
     }
 }
 
 async function translateWord() {
-    const word = modal.value.word
-    m({ translating: true, error: '' })
+    const word = mWord.value
+    mTranslating.value = true
+    mError.value = ''
     try {
         const res = await axios.post(`/stories/${props.story.id}/translate-word`, { word })
+        if (mWord.value !== word) return
         const data = res.data.data ?? null
-        m({ translated: data, error: data ? '' : (res.data.message || 'Tərcümə alınmadı') })
+        mTranslated.value = data
+        mError.value = data ? '' : (res.data.message || 'Tərcümə alınmadı')
+        // Cavab gəldikdə modal bağlanmışsa — yenidən aç
+        mVisible.value = true
     } catch (e) {
-        m({ error: e.response?.data?.message || 'AI xətası' })
+        mError.value = e.response?.data?.message || 'AI xətası'
+        if (mWord.value === word) mVisible.value = true
     } finally {
-        m({ translating: false })
+        if (mWord.value === word) mTranslating.value = false
     }
 }
 
 async function addWord() {
-    const d = modal.value.translated
+    const d = mTranslated.value
     if (!d) return
-    const word = modal.value.word
-    m({ adding: true, error: '' })
+    const word = mWord.value
+    mAdding.value = true
+    mError.value  = ''
     try {
         const res = await axios.post(`/stories/${props.story.id}/add-word`, {
             term:           d.term || word,
@@ -107,19 +155,20 @@ async function addWord() {
             part_of_speech: d.part_of_speech || null,
         })
         knownSet.add(res.data.normalized || normalize(d.term || word))
-        m({ visible: false })
+        mVisible.value = false
     } catch (e) {
-        m({ error: e.response?.data?.error || 'Xəta baş verdi' })
+        mError.value = e.response?.data?.error || 'Xəta baş verdi'
     } finally {
-        m({ adding: false })
+        mAdding.value = false
     }
 }
 
-function closeModal() { m({ visible: false }) }
+function closeModal() { mVisible.value = false }
 
 function handleOutside(e) {
+    if (mTranslating.value) return  // AI cavabı gözlənilir — modal bağlanmasın
     if (!e.target.closest('.word-modal') && !e.target.closest('.word-token')) {
-        m({ visible: false })
+        mVisible.value = false
     }
 }
 
@@ -130,7 +179,7 @@ const levelColors = {
     A1: 'bg-green-100 text-green-700',
     A2: 'bg-emerald-100 text-emerald-700',
     B1: 'bg-blue-100 text-blue-700',
-    B2: 'bg-indigo-100 text-indigo-700',
+    B2: 'bg-cyan-100 text-cyan-700',
     C1: 'bg-purple-100 text-purple-700',
     C2: 'bg-rose-100 text-rose-700',
 }
@@ -153,47 +202,53 @@ const levelColors = {
                         >{{ story.level }}</span>
                         <span v-if="story.deck" class="text-xs text-gray-500">
                             Dəst:
-                            <button @click="router.visit(`/decks/${story.deck.id}`)" class="text-indigo-600 hover:underline">{{ story.deck.title }}</button>
+                            <button @click="router.visit(`/decks/${story.deck.id}`)" class="text-cyan-600 hover:underline">{{ story.deck.title }}</button>
                         </span>
-                        <button
-                            @click="router.visit(`/stories/${story.id}/edit`)"
-                            class="text-xs text-gray-400 hover:text-indigo-600 transition"
-                        >Düzəlt</button>
                         <span class="text-xs text-gray-400 hidden sm:inline">· Sözə klik → tərcümə</span>
                     </div>
                 </div>
+                <button
+                    @click="router.visit(`/stories/${story.id}/edit`)"
+                    class="shrink-0 px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 hover:border-gray-300 transition"
+                >Düzəlt</button>
+            </div>
+
+            <!-- Audio Player -->
+            <div v-if="story.audio_url" class="mb-4 bg-white rounded-2xl border border-gray-200 px-4 py-3">
+                <p class="text-xs text-gray-400 mb-2 font-medium">Audio</p>
+                <audio :src="story.audio_url" controls class="w-full rounded-lg"></audio>
             </div>
 
             <!-- Legend -->
-            <div class="flex items-center gap-5 mb-4 text-xs text-gray-500">
+            <div class="flex items-center gap-5 mb-4 text-xs text-gray-600">
                 <span class="flex items-center gap-1.5">
-                    <span class="inline-block w-4 h-4 rounded bg-green-100 border border-green-300"></span>
+                    <span class="underline decoration-green-500 decoration-2 underline-offset-2 font-medium">Wort</span>
                     Dəstdə var ({{ knownSet.size }} söz)
                 </span>
                 <span class="flex items-center gap-1.5">
-                    <span class="inline-block w-4 h-4 rounded bg-indigo-50 border border-indigo-200"></span>
+                    <span class="inline-block w-4 h-4 rounded bg-cyan-50 border border-cyan-200"></span>
                     Hover / klikdə vurğulanır
                 </span>
             </div>
 
             <!-- Story body -->
-            <div class="bg-white rounded-2xl border border-gray-200 p-6 text-gray-800 text-[17px] leading-8">
+            <div class="bg-white rounded-2xl border border-gray-200 p-6 text-gray-800 text-[17px] leading-[1.9]">
                 <template v-for="(line, li) in paragraphs" :key="li">
                     <!-- Empty line → paragraph break -->
-                    <div v-if="line.empty" class="h-4"></div>
+                    <div v-if="line.empty" class="h-3"></div>
 
                     <!-- Text line -->
                     <span v-else>
                         <template v-for="(token, ti) in line.tokens" :key="ti">
                             <span
                                 v-if="token.isWord"
-                                class="word-token cursor-pointer rounded-sm px-[1px] transition-colors"
+                                class="word-token cursor-pointer transition-colors"
                                 :class="[
                                     isKnown(token.text)
-                                        ? 'bg-green-100 hover:bg-green-200'
-                                        : 'hover:bg-indigo-100',
-                                    modal.visible && modal.word === token.text.trim()
-                                        ? '!bg-indigo-200 ring-1 ring-indigo-400 rounded'
+                                        ? 'underline decoration-green-500 decoration-2 underline-offset-2 hover:decoration-green-400'
+                                        : 'hover:bg-cyan-100 rounded-sm px-[1px]',
+                                    mVisible && mWord === token.text.trim()
+                                        ? '!bg-cyan-500/20 ring-1 ring-cyan-400 rounded px-[1px]'
                                         : ''
                                 ]"
                                 @click="onWordClick(token.text)"
@@ -209,58 +264,51 @@ const levelColors = {
         <Teleport to="body">
             <Transition name="modal">
                 <div
-                    v-if="modal.visible"
+                    v-if="mVisible"
                     class="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center p-4"
                     @click.self="closeModal"
                 >
                     <div class="word-modal bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5 relative">
-                        <!-- Close -->
-                        <button
-                            @click="closeModal"
-                            class="absolute top-4 right-4 text-gray-300 hover:text-gray-600 text-2xl leading-none"
-                        >×</button>
+                        <button @click="closeModal" class="absolute top-4 right-4 text-gray-300 hover:text-gray-600 text-2xl leading-none">×</button>
 
-                        <!-- Word heading -->
-                        <h3 class="text-2xl font-bold text-gray-900 mb-4 pr-8">{{ modal.word }}</h3>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-4 pr-8">{{ mWord }}</h3>
 
-                        <!-- Loading spinner (DB lookup) -->
-                        <div v-if="modal.loading" class="py-6 text-center">
-                            <div class="inline-block w-5 h-5 border-2 border-gray-200 border-t-indigo-500 rounded-full animate-spin"></div>
+                        <!-- DB lookup spinner -->
+                        <div v-if="mLoading" class="py-6 text-center">
+                            <div class="inline-block w-5 h-5 border-2 border-gray-200 border-t-cyan-500 rounded-full animate-spin"></div>
                         </div>
 
-                        <!-- ── FOUND IN DECK ── -->
-                        <template v-else-if="modal.found && modal.term">
-                            <div class="space-y-3">
-                                <div class="flex flex-wrap gap-2">
-                                    <span v-if="modal.term.gender" class="text-xs bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full font-semibold">{{ modal.term.gender }}</span>
-                                    <span v-if="modal.term.part_of_speech" class="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full capitalize">{{ modal.term.part_of_speech }}</span>
-                                    <span v-if="modal.term.pronunciation" class="text-xs text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded">/{{ modal.term.pronunciation }}/</span>
-                                </div>
-                                <p class="text-indigo-700 font-bold text-xl">{{ modal.term.definition }}</p>
-                                <p v-if="modal.term.plural_form" class="text-sm text-gray-500">Cəm: <span class="font-medium text-gray-700">{{ modal.term.plural_form }}</span></p>
-                                <div v-if="modal.term.examples?.length" class="bg-gray-50 rounded-xl p-3 space-y-2">
-                                    <div v-for="ex in modal.term.examples" :key="ex.id" class="text-sm">
-                                        <p class="italic text-gray-700">{{ ex.sentence }}</p>
-                                        <p class="text-gray-500 text-xs mt-0.5">{{ ex.translation }}</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-1.5 pt-1 border-t border-gray-100">
-                                    <span class="text-xs font-medium text-green-600">✓ Dəstdədir</span>
-                                    <span class="text-xs text-gray-400">— {{ story.deck?.title }}</span>
+                        <!-- FOUND IN DECK -->
+                        <div v-else-if="mFound && mTerm" class="space-y-3">
+                            <div class="flex flex-wrap gap-2">
+                                <span v-if="mTerm.gender" class="text-xs bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full font-semibold">{{ mTerm.gender }}</span>
+                                <span v-if="mTerm.part_of_speech" class="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full capitalize">{{ mTerm.part_of_speech }}</span>
+                                <span v-if="mTerm.pronunciation" class="text-xs text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded">/{{ mTerm.pronunciation }}/</span>
+                            </div>
+                            <p class="text-cyan-700 font-bold text-xl">{{ mTerm.definition }}</p>
+                            <p v-if="mTerm.plural_form" class="text-sm text-gray-500">Cəm: <span class="font-medium text-gray-700">{{ mTerm.plural_form }}</span></p>
+                            <div v-if="mTerm.examples?.length" class="bg-gray-50 rounded-xl p-3 space-y-2">
+                                <div v-for="ex in mTerm.examples" :key="ex.id" class="text-sm">
+                                    <p class="italic text-gray-700">{{ ex.sentence }}</p>
+                                    <p class="text-gray-500 text-xs mt-0.5">{{ ex.translation }}</p>
                                 </div>
                             </div>
-                        </template>
+                            <div class="flex items-center gap-1.5 pt-1 border-t border-gray-100">
+                                <span class="text-xs font-medium text-green-600">✓ Dəstdədir</span>
+                                <span class="text-xs text-gray-400">— {{ story.deck?.title }}</span>
+                            </div>
+                        </div>
 
-                        <!-- ── NOT FOUND: before translate ── -->
-                        <div v-if="!modal.loading && !modal.found && !modal.translated">
+                        <!-- NOT FOUND + not yet translated -->
+                        <div v-else-if="!mFound && !mTranslated">
                             <p class="text-gray-400 text-sm mb-4">Bu söz hekayənin dəstindən tapılmadı.</p>
-                            <p v-if="modal.error" class="text-xs text-red-500 mb-2">{{ modal.error }}</p>
+                            <p v-if="mError" class="text-xs text-red-500 mb-2">{{ mError }}</p>
                             <button
                                 @click="translateWord"
-                                :disabled="modal.translating"
-                                class="w-full py-2.5 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition text-sm"
+                                :disabled="mTranslating"
+                                class="w-full py-2.5 bg-cyan-600 text-white rounded-xl font-medium hover:bg-cyan-700 disabled:opacity-50 transition text-sm"
                             >
-                                <span v-if="modal.translating" class="flex items-center justify-center gap-2">
+                                <span v-if="mTranslating" class="flex items-center justify-center gap-2">
                                     <span class="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
                                     Tərcümə edilir...
                                 </span>
@@ -268,23 +316,23 @@ const levelColors = {
                             </button>
                         </div>
 
-                        <!-- ── NOT FOUND: after translate ── -->
-                        <div v-if="!modal.loading && !modal.found && modal.translated">
+                        <!-- NOT FOUND + translated -->
+                        <div v-else-if="!mFound && mTranslated">
                             <div class="space-y-2 mb-4">
                                 <div class="flex flex-wrap gap-2">
-                                    <span v-if="modal.translated.gender" class="text-xs bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full font-semibold">{{ modal.translated.gender }}</span>
-                                    <span v-if="modal.translated.part_of_speech" class="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full capitalize">{{ modal.translated.part_of_speech }}</span>
+                                    <span v-if="mTranslated.gender" class="text-xs bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full font-semibold">{{ mTranslated.gender }}</span>
+                                    <span v-if="mTranslated.part_of_speech" class="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full capitalize">{{ mTranslated.part_of_speech }}</span>
                                 </div>
-                                <p class="text-sm text-gray-500 font-medium">{{ modal.translated.term }}</p>
-                                <p class="text-indigo-700 font-bold text-xl">{{ modal.translated.definition }}</p>
+                                <p class="text-sm text-gray-500 font-medium">{{ mTranslated.term }}</p>
+                                <p class="text-cyan-700 font-bold text-xl">{{ mTranslated.definition }}</p>
                             </div>
-                            <p v-if="modal.error" class="text-xs text-red-500 mb-2">{{ modal.error }}</p>
+                            <p v-if="mError" class="text-xs text-red-500 mb-2">{{ mError }}</p>
                             <button
                                 v-if="story.deck_id"
                                 @click="addWord"
-                                :disabled="modal.adding"
-                                class="w-full py-2.5 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition text-sm"
-                            >{{ modal.adding ? 'Əlavə edilir...' : '+ Dəstə Əlavə Et' }}</button>
+                                :disabled="mAdding"
+                                class="w-full py-2.5 bg-cyan-600 text-white rounded-xl font-medium hover:bg-cyan-700 disabled:opacity-50 transition text-sm"
+                            >{{ mAdding ? 'Əlavə edilir...' : '+ Dəstə Əlavə Et' }}</button>
                             <p v-else class="text-xs text-gray-400 text-center mt-2">Dəstə əlavə etmək üçün hekayəyə dəst seçin.</p>
                         </div>
                     </div>
