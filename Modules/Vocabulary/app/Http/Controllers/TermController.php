@@ -115,12 +115,12 @@ class TermController extends Controller
         return back()->with('success', 'Söz yeniləndi!');
     }
 
-    public function destroy(Term $term): RedirectResponse
+    public function destroy(Term $term): JsonResponse
     {
         $this->authorize('update', $term->deck);
         $term->delete();
 
-        return back()->with('success', 'Söz silindi!');
+        return response()->json(['success' => true]);
     }
 
     public function reorder(Request $request, Deck $deck): JsonResponse

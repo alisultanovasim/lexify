@@ -22,10 +22,12 @@ const { dark, toggle } = useDarkMode();
     <aside class="w-60 bg-white border-r border-slate-200 flex flex-col fixed inset-y-0 left-0 z-40">
 
       <!-- Logo -->
-      <div class="flex items-center gap-3 px-4 py-5 border-b border-slate-100">
-        <img src="/logo.jpg" alt="Logo" class="w-8 h-8 object-contain rounded-lg flex-shrink-0" />
-        <span class="font-bold text-slate-900 text-base">Lexify</span>
-      </div>
+        <a href="/dashboard">
+            <div class="flex items-center gap-3 px-4 py-5 border-b border-slate-100">
+                <img src="/logo.jpg" alt="Logo" class="w-8 h-8 object-contain rounded-lg flex-shrink-0" />
+                <span class="font-bold text-slate-900 text-base">Lexify</span>
+            </div>
+        </a>
 
       <!-- Nav links -->
       <nav class="flex-1 px-3 py-4 space-y-0.5">

@@ -10,6 +10,8 @@ const emit  = defineEmits(['updated', 'deleted']);
 
 const expanded        = ref(false);
 const editing         = ref(false);
+const confirmDelete   = ref(false);
+const isDeleted       = ref(false);
 const showImagePicker = ref(false);
 const enriching       = ref(false);
 const enrichStatus    = ref('');
@@ -93,12 +95,13 @@ const reEnrich = async () => {
 
 // ── Delete (axios — no page navigation) ─────────────────────────────────
 const deleteTerm = async () => {
-  if (!confirm('Bu söz silinsin?')) return;
+  confirmDelete.value = false;
+  isDeleted.value = true;
   try {
     await axios.delete(`/terms/${props.term.id}`);
     emit('deleted', props.term.id);
   } catch {
-    alert('Silmə zamanı xəta baş verdi. Yenidən cəhd edin.');
+    isDeleted.value = false;
   }
 };
 
@@ -120,10 +123,10 @@ const removeExample = (i) => form.examples.splice(i, 1);
 </script>
 
 <template>
-  <div class="bg-white rounded-2xl border border-gray-200 hover:border-gray-300 transition">
+  <div v-if="!isDeleted" class="bg-white rounded-2xl border border-gray-200 hover:border-gray-300 transition">
 
     <!-- Term row -->
-    <div class="flex items-center gap-3 p-4 cursor-pointer" @click="expanded = !expanded">
+    <div class="flex items-center gap-3 p-4 cursor-pointer" @click="expanded = !expanded; confirmDelete = false">
 
       <!-- Image thumbnail -->
       <div class="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
@@ -155,7 +158,19 @@ const removeExample = (i) => form.examples.splice(i, 1);
         </span>
         <button @click.stop="editing = true"
           class="p-1.5 text-gray-400 hover:text-cyan-600 transition rounded-lg hover:bg-cyan-50">✏️</button>
-        <button @click.stop="deleteTerm"
+
+        <!-- Inline delete confirm -->
+        <template v-if="confirmDelete">
+          <button @click.stop="deleteTerm"
+            class="px-2 py-1 text-xs font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition">
+            Sil
+          </button>
+          <button @click.stop="confirmDelete = false"
+            class="px-2 py-1 text-xs font-medium text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg transition">
+            Ləğv
+          </button>
+        </template>
+        <button v-else @click.stop="confirmDelete = true"
           class="p-1.5 text-gray-400 hover:text-red-500 transition rounded-lg hover:bg-red-50">🗑️</button>
         <span class="text-gray-300 text-sm ml-1">{{ expanded ? '▲' : '▼' }}</span>
       </div>

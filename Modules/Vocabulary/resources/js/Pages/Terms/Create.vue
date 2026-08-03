@@ -23,20 +23,18 @@ const savedImageUrl   = ref(null); // thumbnail of saved image for preview
 const imgError        = ref('');
 const imgSearchQuery  = ref('');   // manual retry search
 
-const submit = () => {
+const submit = (withAI = true) => {
   const savedTerm = form.term;
   const savedDef  = form.definition;
 
   form.post(`/decks/${props.deck.id}/terms`, {
     onSuccess: () => {
-      // 1. Reset form immediately
       form.reset();
-      enrichMsg.value  = '';
-      enrichOk.value   = false;
+      enrichMsg.value    = '';
+      enrichOk.value     = false;
       enrichedTerm.value = null;
 
-      // 2. Start AI enrichment + image search in parallel
-      runEnrich(savedTerm, savedDef);
+      if (withAI) runEnrich(savedTerm, savedDef);
       openImageSuggest(savedTerm);
     },
   });
@@ -168,7 +166,7 @@ const imgErrorMessages = {
       <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-4">
         <div class="flex items-start gap-3 p-3 bg-cyan-50 border border-cyan-100 rounded-xl mb-5 text-sm text-cyan-700">
           <span class="text-lg">✨</span>
-          <p>Söz + tərcümə yazın — AI <strong>tələffüz, cəm forması, nümunə cümlə</strong> avtomatik dolduracaq. Şəkil seçimi də göstəriləcək.</p>
+          <p><strong>AI ilə əlavə et</strong> — tələffüz, cəm, nümunə cümlə avtomatik doldurulur. <strong>Əlavə et</strong> — yalnız söz + tərcümə saxlanır. Hər iki halda şəkil seçimi açılır.</p>
         </div>
 
         <form @submit.prevent="submit" class="space-y-4">
@@ -194,16 +192,27 @@ const imgErrorMessages = {
             <p v-if="form.errors.definition" class="text-red-500 text-xs mt-1">{{ form.errors.definition }}</p>
           </div>
 
-          <button type="submit" :disabled="form.processing || enriching"
-            class="w-full py-3 bg-cyan-600 text-white rounded-xl font-medium hover:bg-cyan-700 disabled:opacity-60 transition flex items-center justify-center gap-2">
-            <svg v-if="form.processing || enriching" class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-            </svg>
-            <span v-if="form.processing">Saxlanır...</span>
-            <span v-else-if="enriching">✨ AI işləyir...</span>
-            <span v-else>✨ Əlavə et</span>
-          </button>
+          <div class="flex gap-2">
+            <!-- Manual add (no AI) -->
+            <button type="button" @click="submit(false)"
+              :disabled="form.processing || enriching || !form.term || !form.definition"
+              class="flex-1 py-3 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 disabled:opacity-50 transition text-sm">
+              <span v-if="form.processing">Saxlanır...</span>
+              <span v-else>Əlavə et</span>
+            </button>
+
+            <!-- AI add -->
+            <button type="submit" :disabled="form.processing || enriching"
+              class="flex-1 py-3 bg-cyan-600 text-white rounded-xl font-medium hover:bg-cyan-700 disabled:opacity-60 transition flex items-center justify-center gap-2 text-sm">
+              <svg v-if="form.processing || enriching" class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+              </svg>
+              <span v-if="form.processing">Saxlanır...</span>
+              <span v-else-if="enriching">AI işləyir...</span>
+              <span v-else>✨ AI ilə əlavə et</span>
+            </button>
+          </div>
 
           <!-- AI status message -->
           <p v-if="enrichMsg && !enrichedTerm" class="text-center text-sm"
