@@ -30,7 +30,14 @@ onMounted(() => {
   rightItems.value     = shuffle(subset.map(t => ({ id: t.id, text: t.definition, side: 'right' })));
 });
 
-const allMatchedIds = computed(() => new Set([...matched.value].map(k => k.split('-')[0])));
+const allMatchedIds = computed(() => {
+  const ids = new Set();
+  for (const k of matched.value) {
+    const side = k.endsWith('-left') ? 'left' : 'right';
+    ids.add(k.slice(0, -(side.length + 1)));
+  }
+  return ids;
+});
 const isAllMatched  = computed(() => allMatchedIds.value.size === pairs.value.length);
 
 const getItemKey = (item) => `${item.id}-${item.side}`;
@@ -55,7 +62,7 @@ const select = async (item) => {
     }).catch(() => {});
 
     if (isAllMatched.value) {
-      await axios.post(`/study/${props.session.id}/complete`);
+      axios.post(`/study/${props.session.id}/complete`).catch(() => {});
       setTimeout(() => { completed.value = true; }, 600);
     }
   } else {

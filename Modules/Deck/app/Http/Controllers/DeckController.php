@@ -136,9 +136,10 @@ class DeckController extends Controller
 
         $page    = max(1, (int) $request->get('page', 1));
         $search  = trim((string) $request->get('search', ''));
-        $perPage = 10;
+        $perPage = min(1000, max(1, (int) $request->get('per_page', 10)));
+        $sort    = $request->get('sort', 'asc') === 'desc' ? 'desc' : 'asc';
 
-        $query = $deck->terms()->with(['primaryImage', 'examples']);
+        $query = $deck->terms()->with(['primaryImage', 'examples'])->reorder('id', $sort);
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {

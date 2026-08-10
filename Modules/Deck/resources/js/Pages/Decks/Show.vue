@@ -4,6 +4,7 @@ import {router} from '@inertiajs/vue3';
 import {ref, onMounted, onUnmounted, watch} from 'vue';
 import TermCard from '../../Components/TermCard.vue';
 import axios from 'axios';
+import {Document, Packer, Paragraph, TextRun, HeadingLevel} from 'docx';
 
 const props = defineProps({deck: Object, stories: {type: Array, default: () => []}});
 
@@ -14,19 +15,23 @@ const hasMore = ref(true);
 const loadingMore = ref(false);
 const totalCount = ref(props.deck.terms_count ?? 0);
 const termSearch = ref('');
+const termSort = ref('asc');
 const sentinel = ref(null);
 
 let observer = null;
 let searchTimer = null;
+let loadGen = 0;
 
 const loadMore = async () => {
     if (loadingMore.value || !hasMore.value) return;
     loadingMore.value = true;
     const nextPage = page.value + 1;
+    const gen = loadGen;
     try {
         const res = await axios.get(`/decks/${props.deck.id}/terms`, {
-            params: {page: nextPage, search: termSearch.value},
+            params: {page: nextPage, search: termSearch.value, sort: termSort.value},
         });
+        if (gen !== loadGen) return;
         terms.value = [...terms.value, ...res.data.terms];
         page.value = nextPage;
         hasMore.value = res.data.has_more;
@@ -34,11 +39,13 @@ const loadMore = async () => {
     } catch {
         /* silent — user can scroll again to retry */
     } finally {
-        loadingMore.value = false;
+        if (gen === loadGen) loadingMore.value = false;
     }
 };
 
 const resetAndLoad = async () => {
+    loadGen++;
+    loadingMore.value = false;
     terms.value = [];
     page.value = 0;
     hasMore.value = true;
@@ -50,6 +57,8 @@ watch(termSearch, () => {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(resetAndLoad, 300);
 });
+
+watch(termSort, resetAndLoad);
 
 // Setup Intersection Observer on sentinel element
 const setupObserver = () => {
@@ -82,6 +91,64 @@ const onTermUpdated = (updatedTerm) => {
 const onTermDeleted = (termId) => {
     terms.value = terms.value.filter(t => t.id !== termId);
     totalCount.value = Math.max(0, totalCount.value - 1);
+};
+
+// ── DOCX Export ──────────────────────────────────────────────────────────
+const exportLoading = ref(false);
+
+const exportDocx = async () => {
+    exportLoading.value = true;
+    try {
+        let allTerms = [];
+        let pg = 0;
+        let more = true;
+        while (more) {
+            pg++;
+            const res = await axios.get(`/decks/${props.deck.id}/terms`, {
+                params: {page: pg, per_page: 500},
+            });
+            allTerms = [...allTerms, ...res.data.terms];
+            more = res.data.has_more;
+        }
+
+        const title = props.stories.length > 0 ? props.stories[0].title : props.deck.title;
+
+        const titleParagraph = new Paragraph({
+            text: title,
+            heading: HeadingLevel.HEADING_1,
+            spacing: {before: 0, after: 160},
+        });
+
+        const wordParagraphs = allTerms.map(term =>
+            new Paragraph({
+                spacing: {before: 0, after: 40},
+                children: [
+                    new TextRun({text: term.term, bold: true, size: 22}),
+                    new TextRun({text: ' — ' + term.definition, size: 22}),
+                ],
+            })
+        );
+
+        const doc = new Document({
+            sections: [{
+                children: [titleParagraph, ...wordParagraphs],
+            }],
+        });
+
+        const blob = await Packer.toBlob(doc);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${props.deck.title}.docx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } catch (e) {
+        console.error('Export xətası:', e);
+    } finally {
+        exportLoading.value = false;
+    }
 };
 
 // ── Misc ─────────────────────────────────────────────────────────────────
@@ -137,6 +204,13 @@ const studyModes = [
                     <button @click="go(`/decks/${deck.id}/import`)"
                             class="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition">
                         Import
+                    </button>
+                    <button
+                        @click="exportDocx"
+                        :disabled="exportLoading || totalCount === 0"
+                        class="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {{ exportLoading ? 'Yüklənir...' : 'Export' }}
                     </button>
                     <button @click="showDeleteConfirm = true"
                             class="px-3 py-1.5 text-sm border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition">
@@ -199,6 +273,13 @@ const studyModes = [
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">✕
                     </button>
                 </div>
+                <button
+                    @click="termSort = termSort === 'asc' ? 'desc' : 'asc'"
+                    class="flex items-center gap-1 px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white text-gray-600 hover:bg-gray-50 transition whitespace-nowrap"
+                    :title="termSort === 'asc' ? 'Köhnədən yeniyə' : 'Yenidən köhnəyə'"
+                >
+                    {{ termSort === 'asc' ? '↑ Köhnə→Yeni' : '↓ Yeni→Köhnə' }}
+                </button>
                 <span class="text-sm text-gray-500 whitespace-nowrap">{{ totalCount }} söz</span>
                 <button
                     @click="go(`/decks/${deck.id}/terms/create`)"
