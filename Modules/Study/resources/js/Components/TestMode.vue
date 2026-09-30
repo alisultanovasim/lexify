@@ -9,6 +9,7 @@ const props = defineProps({
   deck:        Object,
   wrongTermIds: { type: Array,   default: () => [] },
   isResumed:   { type: Boolean,  default: false },
+  exitUrl:     { type: String,   default: null },
 });
 
 function buildQuestions(terms) {
@@ -32,6 +33,8 @@ const submitted    = ref(false);
 const completed    = ref(false);
 const results      = ref(null);
 const startTime    = ref(Date.now());
+const localCorrect   = ref(0);
+const localIncorrect = ref(0);
 
 const resumingWrong = computed(() => props.wrongTermIds.length > 0 && !props.isResumed);
 
@@ -46,7 +49,10 @@ const choose = async (choice) => {
   submitted.value = true;
 
   const isCorrect = choice === current.value.correct;
-  const elapsed   = Date.now() - startTime.value;
+  if (isCorrect) localCorrect.value++;
+  else           localIncorrect.value++;
+
+  const elapsed = Date.now() - startTime.value;
 
   await axios.post(`/study/${props.session.id}/answer`, {
     term_id:          current.value.term.id,
@@ -63,8 +69,18 @@ const next = async () => {
     submitted.value = false;
     startTime.value = Date.now();
   } else {
-    const res = await axios.post(`/study/${props.session.id}/complete`);
-    results.value   = res.data;
+    try {
+      const res = await axios.post(`/study/${props.session.id}/complete`);
+      results.value = res.data;
+    } catch {
+      const total = questions.value.length;
+      results.value = {
+        total,
+        correct:   localCorrect.value,
+        incorrect: localIncorrect.value,
+        score:     total > 0 ? Math.round((localCorrect.value / total) * 100) : 0,
+      };
+    }
     completed.value = true;
   }
 };
@@ -94,18 +110,18 @@ const choiceClass = (choice) => {
       </div>
     </div>
     <div class="flex flex-col sm:flex-row gap-3 justify-center">
-      <button v-if="results?.incorrect > 0"
+      <button v-if="results?.incorrect > 0 && !exitUrl"
         @click="router.visit(`/decks/${deck.id}/study/test`)"
         class="px-6 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition font-medium">
         ⚡ {{ results.incorrect }} Yanlışı Yenidən
       </button>
-      <button @click="router.visit(`/decks/${deck.id}/study/test?fresh=1`)"
+      <button @click="router.visit(exitUrl ?? `/decks/${deck.id}/study/test?fresh=1`)"
         class="px-6 py-3 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 transition font-medium">
         🔄 Yenidən Başla
       </button>
-      <button @click="router.visit(`/decks/${deck.id}`)"
+      <button @click="router.visit(exitUrl ?? `/decks/${deck.id}`)"
         class="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition">
-        Dəstə Qayıt
+        {{ exitUrl ? 'Dəstlərə Qayıt' : 'Dəstə Qayıt' }}
       </button>
     </div>
   </div>

@@ -12,36 +12,43 @@ use Modules\Vocabulary\Models\Term;
  */
 class GeminiEnrichmentService
 {
-    // Provider chain: tried in this order — 1) OpenAI  2) Deepseek  3) Gemini
-    private array $providers = [
-        [
-            'name'    => 'openai',
-            'key'     => '',
-            'model'   => 'gpt-4o-mini',
-            'type'    => 'openai',
-            'url'     => 'https://api.openai.com/v1/chat/completions',
-        ],
-        [
-            'name'    => 'deepseek',
-            'key'     => '',
-            'model'   => 'deepseek-chat',
-            'type'    => 'openai',
-            'url'     => 'https://api.deepseek.com/v1/chat/completions',
-        ],
-        [
-            'name'    => 'gemini',
-            'key'     => '',
-            'model'   => 'gemini-2.0-flash',
-            'type'    => 'gemini',
-            'url'     => 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
-        ],
-    ];
+    // Provider chain: tried in this order — 1) Ollama (local)  2) OpenAI  3) Deepseek  4) Gemini
+    private array $providers = [];
 
     public function __construct()
     {
-        $this->providers[0]['key'] = config('vocabulary.openai_api_key', '');
-        $this->providers[1]['key'] = config('vocabulary.deepseek_api_key', '');
-        $this->providers[2]['key'] = config('vocabulary.gemini_api_key', '');
+        $this->providers = [
+            [
+                'name'        => 'ollama',
+                'key'         => 'ollama',
+                'model'       => 'mistral',
+                'type'        => 'openai',
+                'url'         => 'http://localhost:11434/v1/chat/completions',
+                'timeout'     => 120,
+                'json_format' => false,
+            ],
+            [
+                'name'    => 'openai',
+                'key'     => config('vocabulary.openai_api_key', ''),
+                'model'   => 'gpt-4o-mini',
+                'type'    => 'openai',
+                'url'     => 'https://api.openai.com/v1/chat/completions',
+            ],
+            [
+                'name'    => 'deepseek',
+                'key'     => config('vocabulary.deepseek_api_key', ''),
+                'model'   => 'deepseek-chat',
+                'type'    => 'openai',
+                'url'     => 'https://api.deepseek.com/v1/chat/completions',
+            ],
+            [
+                'name'    => 'gemini',
+                'key'     => config('vocabulary.gemini_api_key', ''),
+                'model'   => 'gemini-2.0-flash',
+                'type'    => 'gemini',
+                'url'     => 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
+            ],
+        ];
     }
 
     // Returns: 'ok' | 'no_key' | 'quota' | 'error'
@@ -84,23 +91,28 @@ class GeminiEnrichmentService
         return 'quota'; // most common reason when all fail
     }
 
-    // ── OpenAI-compatible call (OpenAI + Deepseek) ──────────────────────────
+    // ── OpenAI-compatible call (OpenAI + Deepseek + Ollama) ─────────────────
     private function callOpenAICompatible(array $provider, string $prompt): array
     {
         try {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $provider['key'],
-                'Content-Type'  => 'application/json',
-            ])->timeout(20)->post($provider['url'], [
+            $body = [
                 'model'       => $provider['model'],
                 'messages'    => [
                     ['role' => 'system', 'content' => 'You are a language learning assistant. Always respond with valid JSON only, no markdown.'],
                     ['role' => 'user',   'content' => $prompt],
                 ],
-                'response_format' => ['type' => 'json_object'],
                 'temperature' => 0.1,
                 'max_tokens'  => 400,
-            ]);
+            ];
+
+            if ($provider['json_format'] ?? true) {
+                $body['response_format'] = ['type' => 'json_object'];
+            }
+
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $provider['key'],
+                'Content-Type'  => 'application/json',
+            ])->timeout($provider['timeout'] ?? 20)->post($provider['url'], $body);
 
             if (!$response->successful()) {
                 $status = $response->status();
@@ -199,12 +211,18 @@ class GeminiEnrichmentService
     // ── Prompt builder ───────────────────────────────────────────────────────
     private function buildPrompt(string $term, string $definition, ?string $sourceLang, ?string $targetLang): string
     {
-        $langNote = '';
+        $langMap = ['de' => 'German', 'en' => 'English', 'ru' => 'Russian', 'az' => 'Azerbaijani', 'tr' => 'Turkish', 'zh' => 'Chinese', 'ja' => 'Japanese', 'fr' => 'French', 'es' => 'Spanish'];
+
+        $langNote       = '';
+        $exampleNote    = 'short example sentence (max 8 words)';
+        $translationNote = 'translation';
+
         if ($sourceLang) {
-            $langMap = ['de' => 'German', 'en' => 'English', 'ru' => 'Russian', 'az' => 'Azerbaijani', 'tr' => 'Turkish', 'zh' => 'Chinese', 'ja' => 'Japanese', 'fr' => 'French', 'es' => 'Spanish'];
             $srcName = $langMap[$sourceLang] ?? $sourceLang;
             $tgtName = $langMap[$targetLang] ?? ($targetLang ?? 'unknown');
-            $langNote = "The word is in {$srcName}, the translation is in {$tgtName}.";
+            $langNote        = "The word is in {$srcName}, the translation is in {$tgtName}.";
+            $exampleNote     = "example sentence in {$srcName} (max 8 words)";
+            $translationNote = "translation in {$tgtName}";
         }
 
         return <<<PROMPT
@@ -218,7 +236,7 @@ Return a JSON object with exactly these fields:
   "gender": "der" | "die" | "das" | null (ONLY for German nouns, null for all other cases),
   "plural_form": "plural form or empty string",
   "part_of_speech": "noun" | "verb" | "adjective" | "adverb" | "phrase" | "other",
-  "examples": [{"sentence": "short example in source language (max 8 words)", "translation": "translation"}]
+  "examples": [{"sentence": "{$exampleNote}", "translation": "{$translationNote}"}]
 }
 
 Rules: exactly 1 example sentence, gender/plural only for German nouns.

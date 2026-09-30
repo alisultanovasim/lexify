@@ -1,7 +1,8 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import FlashMessage from '@/Components/FlashMessage.vue';
+import UniversalStudyModal from '@/Components/UniversalStudyModal.vue';
 import { useDarkMode } from '@/composables/useDarkMode.js';
 
 defineProps({ title: String });
@@ -12,6 +13,16 @@ const url  = computed(() => page.url);
 
 const active = (path) => url.value?.startsWith(path);
 const { dark, toggle } = useDarkMode();
+
+const universalOpen = ref(false);
+const modalMode     = ref(null);
+
+const openModal = (mode) => {
+  modalMode.value     = mode;
+  universalOpen.value = false;
+};
+
+const closeModal = () => { modalMode.value = null; };
 </script>
 
 <template>
@@ -75,6 +86,69 @@ const { dark, toggle } = useDarkMode();
           Hekayələr
         </button>
 
+        <!-- ── Ümumi sinaq (accordion dropdown) ──────────────────────────── -->
+        <div>
+          <button
+            @click="universalOpen = !universalOpen"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition"
+            :class="universalOpen
+              ? 'bg-cyan-50 text-cyan-700'
+              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'"
+          >
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+            <span class="flex-1 text-left">Ümumi sinaq</span>
+            <svg
+              class="w-4 h-4 flex-shrink-0 transition-transform duration-200"
+              :class="universalOpen ? 'rotate-180' : ''"
+              fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+
+          <!-- Dropdown items -->
+          <Transition
+            enter-active-class="transition duration-150 ease-out"
+            enter-from-class="opacity-0 -translate-y-1"
+            enter-to-class="opacity-100 translate-y-0"
+            leave-active-class="transition duration-100 ease-in"
+            leave-from-class="opacity-100 translate-y-0"
+            leave-to-class="opacity-0 -translate-y-1"
+          >
+            <div v-if="universalOpen" class="mt-1 ml-8 space-y-0.5">
+              <button
+                @click="openModal('learn')"
+                class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition text-slate-600 hover:bg-cyan-50 hover:text-cyan-700"
+              >
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                Öyrən
+              </button>
+              <button
+                @click="openModal('test')"
+                class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition text-slate-600 hover:bg-cyan-50 hover:text-cyan-700"
+              >
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                Test
+              </button>
+              <button
+                @click="openModal('match')"
+                class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition text-slate-600 hover:bg-cyan-50 hover:text-cyan-700"
+              >
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                </svg>
+                Uyğunlaş
+              </button>
+            </div>
+          </Transition>
+        </div>
+
       </nav>
 
       <!-- Dark mode toggle -->
@@ -123,5 +197,12 @@ const { dark, toggle } = useDarkMode();
       <FlashMessage />
       <slot />
     </main>
+
+    <!-- ── Universal Study Modal (root level — above all z-indexes) ──── -->
+    <UniversalStudyModal
+      v-if="modalMode"
+      :mode="modalMode"
+      @close="closeModal"
+    />
   </div>
 </template>

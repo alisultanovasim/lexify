@@ -9,11 +9,14 @@ use Modules\Deck\Models\Deck;
 class StudySession extends Model
 {
     protected $fillable = [
-        'user_id','deck_id','mode','completed_at',
+        'user_id','deck_id','deck_ids','mode','completed_at',
         'total_cards','correct_count','incorrect_count'
     ];
 
-    protected $casts = ['completed_at' => 'datetime'];
+    protected $casts = [
+        'completed_at' => 'datetime',
+        'deck_ids'     => 'array',
+    ];
 
     public function user(): BelongsTo { return $this->belongsTo(\App\Models\User::class); }
     public function deck(): BelongsTo { return $this->belongsTo(Deck::class); }

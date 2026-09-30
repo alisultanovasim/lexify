@@ -9,6 +9,7 @@ const props = defineProps({
   session:     Object,
   deck:        Object,
   wrongTermIds: { type: Array, default: () => [] },
+  exitUrl:     { type: String, default: null },
 });
 
 const queue        = ref([...props.terms]);
@@ -90,7 +91,7 @@ const advanceQueue = async () => {
 const submit = async () => {
   if (!userAnswer.value.trim()) return;
   submitted.value = true;
-  isCorrect.value = isAnswerCorrect(userAnswer.value, current.value.definition);
+  isCorrect.value = isAnswerCorrect(userAnswer.value, current.value.term);
 
   if (isCorrect.value) {
     correctTermIds.value = new Set([...correctTermIds.value, current.value.id]);
@@ -129,10 +130,12 @@ const skip = async () => {
     <p class="text-gray-500 mb-2">Bütün sözləri öyrəndiniz!</p>
     <p class="text-gray-400 text-sm mb-8">{{ round }} tur, {{ results?.correct }} düzgün</p>
     <div class="flex gap-3 justify-center">
-      <button @click="router.visit(`/decks/${deck.id}/study/learn`)"
+      <button @click="router.visit(exitUrl ?? `/decks/${deck.id}/study/learn`)"
         class="px-6 py-3 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 transition">Yenidən</button>
-      <button @click="router.visit(`/decks/${deck.id}`)"
-        class="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition">Dəstə Qayıt</button>
+      <button @click="router.visit(exitUrl ?? `/decks/${deck.id}`)"
+        class="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition">
+        {{ exitUrl ? 'Dəstlərə Qayıt' : 'Dəstə Qayıt' }}
+      </button>
     </div>
   </div>
 
@@ -161,9 +164,8 @@ const skip = async () => {
       </div>
     </div>
 
-    <!-- Card -->
+    <!-- Card: show Azerbaijani definition as the prompt -->
     <div class="bg-white rounded-2xl border border-gray-200 p-8 mb-6 text-center relative">
-      <!-- "keçən dəfə yanlış" badge -->
       <span v-if="resumingWrong && wrongTermIds.includes(current?.id)"
         class="absolute top-3 left-3 text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">
         keçən dəfə yanlış
@@ -172,19 +174,9 @@ const skip = async () => {
       <div v-if="current?.image" class="flex justify-center mb-4">
         <img :src="current.image" class="max-h-28 rounded-xl object-cover" />
       </div>
-      <div class="flex items-center justify-center gap-2 mb-2">
-        <span v-if="current?.gender" class="text-sm font-bold px-2 py-0.5 rounded"
-          :class="{
-            'bg-blue-100 text-blue-700':     current.gender === 'der',
-            'bg-pink-100 text-pink-700':     current.gender === 'die',
-            'bg-yellow-100 text-yellow-700': current.gender === 'das',
-          }">{{ current?.gender }}</span>
-        <div class="flex items-center justify-center gap-2">
-          <p class="text-3xl font-bold text-gray-900">{{ current?.term }}</p>
-          <SpeakButton v-if="current?.term" :text="current.term" :lang="deck.source_language?.code || 'de'" size="lg" />
-        </div>
-      </div>
-      <p v-if="current?.pronunciation" class="text-cyan-500 font-mono text-sm">/{{ current.pronunciation }}/</p>
+
+      <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Almancasını yazın</p>
+      <p class="text-3xl font-bold text-gray-900">{{ current?.definition }}</p>
       <p v-if="current?.notes && submitted" class="text-gray-500 text-sm italic mt-2">{{ current.notes }}</p>
     </div>
 
@@ -194,7 +186,7 @@ const skip = async () => {
         ref="inputRef"
         v-model="userAnswer"
         type="text"
-        placeholder="Tərcüməni yazın..."
+        placeholder="Almancasını yazın..."
         :disabled="submitted"
         :class="[
           'w-full px-4 py-3 text-lg border-2 rounded-xl outline-none transition',
@@ -207,10 +199,20 @@ const skip = async () => {
       />
     </div>
 
-    <!-- Wrong answer feedback -->
+    <!-- Wrong answer feedback: show correct German term -->
     <div v-if="submitted && !isCorrect" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
       <p class="text-red-600 text-sm font-medium">Düzgün cavab:</p>
-      <p class="text-red-800 text-lg font-bold">{{ current?.definition }}</p>
+      <div class="flex items-center gap-2 mt-1">
+        <span v-if="current?.gender" class="text-sm font-bold px-2 py-0.5 rounded"
+          :class="{
+            'bg-blue-100 text-blue-700':     current.gender === 'der',
+            'bg-pink-100 text-pink-700':     current.gender === 'die',
+            'bg-yellow-100 text-yellow-700': current.gender === 'das',
+          }">{{ current.gender }}</span>
+        <p class="text-red-800 text-lg font-bold">{{ current?.term }}</p>
+        <SpeakButton v-if="current?.term" :text="current.term" :lang="deck.source_language?.code || 'de'" size="sm" />
+      </div>
+      <p v-if="current?.pronunciation" class="text-red-500 font-mono text-sm mt-1">/{{ current.pronunciation }}/</p>
       <p v-if="current?.examples?.length" class="text-red-600 text-sm mt-1 italic">
         {{ current.examples[0].sentence }}
       </p>
@@ -228,13 +230,26 @@ const skip = async () => {
           Keç
         </button>
       </template>
-      <button v-else @click="next"
-        :class="['flex-1 py-3 rounded-xl font-medium text-white transition',
-          isCorrect ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-800 hover:bg-gray-900']">
-        {{ currentIndex < queue.length - 1
-            ? 'Növbəti →'
-            : (wrongQueue.length > 0 ? `${wrongQueue.length} yanlışa qayıt →` : 'Bitir') }}
-      </button>
+      <template v-else>
+        <!-- Correct answer reveal with SpeakButton -->
+        <div v-if="isCorrect" class="flex-1 flex items-center gap-2 px-4 py-3 bg-green-50 border border-green-200 rounded-xl">
+          <span v-if="current?.gender" class="text-sm font-bold px-2 py-0.5 rounded"
+            :class="{
+              'bg-blue-100 text-blue-700':     current.gender === 'der',
+              'bg-pink-100 text-pink-700':     current.gender === 'die',
+              'bg-yellow-100 text-yellow-700': current.gender === 'das',
+            }">{{ current.gender }}</span>
+          <p class="text-green-800 font-bold text-lg">{{ current?.term }}</p>
+          <SpeakButton v-if="current?.term" :text="current.term" :lang="deck.source_language?.code || 'de'" size="sm" />
+        </div>
+        <button @click="next"
+          :class="['py-3 px-6 rounded-xl font-medium text-white transition flex-shrink-0',
+            isCorrect ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-800 hover:bg-gray-900']">
+          {{ currentIndex < queue.length - 1
+              ? 'Növbəti →'
+              : (wrongQueue.length > 0 ? `${wrongQueue.length} yanlışa qayıt →` : 'Bitir') }}
+        </button>
+      </template>
     </div>
   </div>
 </template>

@@ -2,6 +2,11 @@
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { router } from '@inertiajs/vue3';
 
+function resetProgress() {
+  if (!confirm('Bütün irəliləyiş məlumatlarınız silinəcək. Əminsiniz?')) return;
+  router.delete(route('progress.reset'));
+}
+
 const props = defineProps({
   totalDecks: Number,
   totalTerms: Number,
@@ -20,7 +25,13 @@ const modeColors = { flashcard:'bg-cyan-100 text-cyan-700', learn:'bg-purple-100
   <AppLayout title="İrəliləyiş">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-      <h1 class="text-2xl font-bold text-gray-900 mb-8">İrəliləyiş</h1>
+      <div class="flex items-center justify-between mb-8">
+        <h1 class="text-2xl font-bold text-gray-900">İrəliləyiş</h1>
+        <button @click="resetProgress"
+          class="px-4 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-xl hover:bg-red-50 transition">
+          Sıfırla
+        </button>
+      </div>
 
       <!-- Stats cards -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">

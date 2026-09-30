@@ -8,6 +8,7 @@ const props = defineProps({
   session:       Object,
   deck:          Object,
   matchProgress: { type: Object, default: null },
+  exitUrl:       { type: String, default: null },
 });
 
 const MAX_PAIRS = 8;
@@ -123,12 +124,14 @@ const overallProgress = computed(() => {
     </div>
 
     <div class="flex gap-3 justify-center">
-      <button @click="router.visit(`/decks/${deck.id}/study/match`)"
+      <button @click="router.visit(exitUrl ?? `/decks/${deck.id}/study/match`)"
         class="px-6 py-3 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 transition">
-        {{ matchProgress && (matchProgress.matched + score.correct) >= matchProgress.total ? '🔄 Yenidən' : 'Davam et →' }}
+        {{ exitUrl ? 'Yenidən Başla' : (matchProgress && (matchProgress.matched + score.correct) >= matchProgress.total ? '🔄 Yenidən' : 'Davam et →') }}
       </button>
-      <button @click="router.visit(`/decks/${deck.id}`)"
-        class="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition">Dəstə Qayıt</button>
+      <button @click="router.visit(exitUrl ?? `/decks/${deck.id}`)"
+        class="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition">
+        {{ exitUrl ? 'Dəstlərə Qayıt' : 'Dəstə Qayıt' }}
+      </button>
     </div>
   </div>
 

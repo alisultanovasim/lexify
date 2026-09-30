@@ -73,10 +73,14 @@ class StudyController extends Controller
             }
 
             if (!empty($wrongTermIds)) {
-                $wrongSet   = array_flip($wrongTermIds);
-                $wrongTerms = $allTerms->filter(fn ($t) => isset($wrongSet[$t->id]));
-                $otherTerms = $allTerms->filter(fn ($t) => !isset($wrongSet[$t->id]));
-                $allTerms   = $wrongTerms->concat($otherTerms)->values();
+                $wrongSet = array_flip($wrongTermIds);
+                if ($mode === 'test') {
+                    $allTerms = $allTerms->filter(fn ($t) => isset($wrongSet[$t->id]))->values();
+                } else {
+                    $wrongTerms = $allTerms->filter(fn ($t) => isset($wrongSet[$t->id]));
+                    $otherTerms = $allTerms->filter(fn ($t) => !isset($wrongSet[$t->id]));
+                    $allTerms   = $wrongTerms->concat($otherTerms)->values();
+                }
             }
         }
 

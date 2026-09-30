@@ -97,4 +97,14 @@ class ProgressController extends Controller
             'dueToday', 'recentSessions', 'deckProgress', 'incompleteSessions'
         ));
     }
+
+    public function reset(Request $request)
+    {
+        $userId = auth()->id();
+
+        StudySession::where('user_id', $userId)->delete();
+        UserTermProgress::where('user_id', $userId)->delete();
+
+        return redirect()->route('progress.index')->with('success', 'İrəliləyiş sıfırlandı.');
+    }
 }
